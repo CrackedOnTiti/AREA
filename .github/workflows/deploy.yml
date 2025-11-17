@@ -31,7 +31,7 @@ jobs:
 
       - name: Build with mdBook
         run: |
-          cd documentation
+          cd documents
           mdbook build
 
       - name: Setup Pages
@@ -40,7 +40,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: 'documentation/book'
+          path: 'documents/book'
 
   deploy:
     environment:

@@ -1,0 +1,12 @@
+[book]
+title = "AREA Documentation"
+authors = ["CrackedOnTiti"]
+language = "en"
+multilingual = false
+src = "src"
+
+[build]
+build-dir = "book"
+
+[output.html]
+default-theme = "coal"

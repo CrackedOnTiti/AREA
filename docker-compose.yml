@@ -1,0 +1,56 @@
+services:
+  database:
+    image: postgres:15
+    container_name: area_database
+    environment:
+      - POSTGRES_DB=area_db
+      - POSTGRES_USER=area_user
+      - POSTGRES_PASSWORD=area_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: area_server
+    ports:
+      - "8080:8080"
+    environment:
+      - DATABASE_URL=postgresql://area_user:area_password@database:5432/area_db
+      - FLASK_APP=app.py
+      - FLASK_ENV=development
+    volumes:
+      - ./server:/app
+    depends_on:
+      - database
+
+  client_mobile:
+    build:
+      context: ./client
+      dockerfile: Dockerfile.mobile
+    container_name: area_client_mobile
+    volumes:
+      - mobile_build:/build
+    command: echo "React Native mobile client build placeholder"
+
+  client_web:
+    build:
+      context: ./client
+      dockerfile: Dockerfile.web
+    container_name: area_client_web
+    ports:
+      - "8081:8081"
+    volumes:
+      - mobile_build:/mobile_build
+      - ./client/web:/app
+    depends_on:
+      - server
+      - client_mobile
+    command: echo "Web client placeholder - will serve static files"
+
+volumes:
+  postgres_data:
+  mobile_build:

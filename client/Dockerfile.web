@@ -1,0 +1,10 @@
+FROM node:18-alpine
+
+WORKDIR /app
+
+# Install dependencies for React and run build yatta yatta yatta
+
+EXPOSE 8081
+
+# Placeholder
+CMD ["echo", "React web client up"]

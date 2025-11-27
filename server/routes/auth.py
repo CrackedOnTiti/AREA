@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
 from database.models import db, User
-from utils.auth_utils import hash_password, verify_password, generate_token, require_auth
+from utils.auth_utils import hash_password, verify_password, generate_token, require_auth, password_complexity
 
 auth_bp = Blueprint('auth', __name__, url_prefix='/api/auth')
 
@@ -22,6 +22,9 @@ def register():
     
     if len(password) > 128:
         return jsonify({'error': 'Password is too long'}), 400
+    
+    if not password_complexity(password):
+        return jsonify({'error': 'Password requires a lowercase, uppercase and special character'}), 400
     
     # check if user already exists
     if User.query.filter_by(username=username).first():

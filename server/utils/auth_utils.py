@@ -78,3 +78,20 @@ def require_auth(f):
         return f(current_user=current_user, *args, **kwargs)
 
     return decorated_function
+
+def password_complexity(password):
+    lower = False
+    upper = False
+    special = False
+
+    for char in password:
+        if not lower or not upper or not special:
+            if char.islower():
+                lower = True
+            if char.isupper():
+                upper = True
+            if not char.isalnum():
+                special = True
+            if lower and upper and special:
+                return True
+    return False

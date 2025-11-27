@@ -10,21 +10,182 @@ http://localhost:8080
 
 ---
 
-## `/about.json`
+## Authentication Endpoints
 
-**Method:** `GET`
+### `POST /api/auth/register`
+
+**Description:**
+Register a new user account.
+
+**Authentication:** Not required
+
+**Request Body:**
+```json
+{
+  "username": "string",
+  "email": "string",
+  "password": "string"
+}
+```
+
+**Password Requirements:**
+- Minimum 8 characters
+- Maximum 128 characters
+- Must contain uppercase letter
+- Must contain lowercase letter
+- Must contain special character
+
+**Success Response (201 Created):**
+```json
+{
+  "message": "User registered successfully",
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "user": {
+    "id": 1,
+    "username": "alice",
+    "email": "alice@example.com",
+    "created_at": "2025-11-27T17:54:14.738713",
+    "updated_at": "2025-11-27T17:54:14.738718"
+  }
+}
+```
+
+**Error Responses:**
+
+| Status | Error | Description |
+|--------|-------|-------------|
+| 400 | Missing required fields | username, email, or password not provided |
+| 400 | Password must be at least 8 characters | Password too short |
+| 400 | Password is too long | Password exceeds 128 characters |
+| 400 | Password requires a lowercase, uppercase and special character | Password doesn't meet complexity requirements |
+| 409 | Username already exists | Username is taken |
+| 409 | Email already exists | Email is already registered |
+
+**Example:**
+```bash
+curl -X POST http://localhost:8080/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "username": "alice",
+    "email": "alice@example.com",
+    "password": "SecurePass123!"
+  }'
+```
+
+---
+
+### `POST /api/auth/login`
+
+**Description:**
+Login with username/email and password to receive a JWT token.
+
+**Authentication:** Not required
+
+**Request Body:**
+```json
+{
+  "username": "string",
+  "password": "string"
+}
+```
+
+OR
+
+```json
+{
+  "email": "string",
+  "password": "string"
+}
+```
+
+**Success Response (200 OK):**
+```json
+{
+  "message": "Login successful",
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "user": {
+    "id": 1,
+    "username": "alice",
+    "email": "alice@example.com",
+    "created_at": "2025-11-27T17:54:14.738713",
+    "updated_at": "2025-11-27T17:54:14.738718"
+  }
+}
+```
+
+**Error Responses:**
+
+| Status | Error | Description |
+|--------|-------|-------------|
+| 400 | Missing required fields | Password not provided |
+| 400 | Must provide username or email | Neither username nor email provided |
+| 401 | Invalid credentials | Username/email or password incorrect |
+| 401 | This account uses OAuth login | Account registered via OAuth, use social login |
+
+**Example:**
+```bash
+curl -X POST http://localhost:8080/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "username": "alice",
+    "password": "SecurePass123!"
+  }'
+```
+
+---
+
+### `GET /api/auth/me`
+
+**Description:**
+Get current authenticated user information.
+
+**Authentication:** Required (Bearer token)
+
+**Request Headers:**
+```
+Authorization: Bearer <token>
+```
+
+**Success Response (200 OK):**
+```json
+{
+  "user": {
+    "id": 1,
+    "username": "alice",
+    "email": "alice@example.com",
+    "created_at": "2025-11-27T17:54:14.738713",
+    "updated_at": "2025-11-27T17:54:14.738718"
+  }
+}
+```
+
+**Error Responses:**
+
+| Status | Error | Description |
+|--------|-------|-------------|
+| 401 | Authorization token is missing | No Authorization header provided |
+| 401 | Invalid authorization header format | Authorization header malformed |
+| 401 | Invalid or expired token | Token is invalid or has expired |
+| 401 | User not found | User associated with token doesn't exist |
+
+**Example:**
+```bash
+curl -X GET http://localhost:8080/api/auth/me \
+  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+```
+
+---
+
+## General Endpoints
+
+### `GET /about.json`
 
 **Description:**
 Returns information about the server, client, and all available services with their actions and reactions.
 
 **Authentication:** Not required
 
-**Request:**
-```bash
-curl http://localhost:8080/about.json
-```
-
-**Response:**
+**Success Response (200 OK):**
 ```json
 {
   "client": {
@@ -115,4 +276,9 @@ curl http://localhost:8080/about.json
     ]
   }
 }
+```
+
+**Example:**
+```bash
+curl http://localhost:8080/about.json
 ```

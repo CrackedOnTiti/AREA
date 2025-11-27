@@ -80,6 +80,7 @@ def require_auth(f):
     return decorated_function
 
 def password_complexity(password):
+    """Checks if password is correctly formatted"""
     lower = False
     upper = False
     special = False

@@ -19,7 +19,10 @@ def register():
     # validate input
     if len(password) < 8:
         return jsonify({'error': 'Password must be at least 8 characters'}), 400
-
+    
+    if len(password) > 128:
+        return jsonify({'error': 'Password is too long'}), 400
+    
     # check if user already exists
     if User.query.filter_by(username=username).first():
         return jsonify({'error': 'Username already exists'}), 409
@@ -39,6 +42,7 @@ def register():
         'token': token,
         'user': new_user.to_dict()
     }), 201
+
 
 @auth_bp.route('/login', methods=['POST'])
 def login():

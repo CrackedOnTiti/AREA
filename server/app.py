@@ -1,5 +1,7 @@
 import time
 from flask import Flask
+from flask_cors import CORS
+from authlib.integrations.flask_client import OAuth
 from database.models import db
 from config import Config
 from routes.main import main_bp
@@ -11,7 +13,23 @@ app = Flask(__name__)
 
 app.config.from_object(Config)
 
+# Initialize CORS
+CORS(app, origins=Config.CORS_ORIGINS)
+
+# Initialize database
 db.init_app(app)
+
+# Initialize OAuth
+oauth = OAuth(app)
+oauth.register(
+    name='google',
+    client_id=Config.GOOGLE_CLIENT_ID,
+    client_secret=Config.GOOGLE_CLIENT_SECRET,
+    server_metadata_url=Config.GOOGLE_DISCOVERY_URL,
+    client_kwargs={
+        'scope': 'openid email profile'
+    }
+)
 
 # create tables (basically mkdir -p)
 with app.app_context():

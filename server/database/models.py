@@ -11,8 +11,15 @@ class User(db.Model):
     username = db.Column(db.String(80), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.String(255), nullable=True)  # Nullable for OAuth-only users
+    oauth_provider = db.Column(db.String(50), nullable=True)  # 'google', 'facebook', or None for local auth
+    oauth_provider_id = db.Column(db.String(255), nullable=True)  # Provider's user ID
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
     updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc), nullable=False)
+
+    # Ensure unique combination of oauth_provider and oauth_provider_id
+    __table_args__ = (
+        db.UniqueConstraint('oauth_provider', 'oauth_provider_id', name='unique_oauth_user'),
+    )
 
     def __repr__(self):
         return f'<User {self.username}>'

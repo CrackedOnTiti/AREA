@@ -1,8 +1,7 @@
 # AREA
 
-> Dunno yet
-
 **Notion:** [Notion TimeTable](https://www.notion.so/AREA-2af6219a901480c085b5d23c1f08b3bf?source=copy_link)
+
 **Documentation:** [MdBook Documentation](https://crackedontiti.github.io/AREA/)
 
 ## Team

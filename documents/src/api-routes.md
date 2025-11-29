@@ -176,6 +176,73 @@ curl -X GET http://localhost:8080/api/auth/me \
 
 ---
 
+### `GET /api/auth/google/login`
+
+**Description:**
+Initiates Google OAuth2 authentication flow by redirecting to Google's consent screen.
+
+**Authentication:** Not required
+
+**Success Response (302 Redirect):**
+Redirects user to Google OAuth consent screen where they can authorize the application.
+
+**OAuth Scopes Requested:**
+- `openid` - Basic OpenID authentication
+- `email` - User's email address
+- `profile` - User's basic profile information (name, picture)
+
+**Example:**
+```bash
+# In browser, navigate to:
+http://localhost:8080/api/auth/google/login
+```
+
+---
+
+### `GET /api/auth/google/callback`
+
+**Description:**
+Handles the OAuth2 callback from Google after user authentication.
+
+**Authentication:** Not required (callback from Google)
+
+**Query Parameters:**
+```
+code=<authorization_code>
+state=<csrf_token>
+```
+
+**Success Response (200 OK):**
+```json
+{
+  "message": "Google login successful",
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "user": {
+    "id": 1,
+    "username": "john_doe",
+    "email": "john@example.com",
+    "oauth_provider": "google",
+    "created_at": "2025-11-29T18:30:00Z"
+  }
+}
+```
+
+**Error Responses:**
+
+| Status | Error | Description |
+|--------|-------|-------------|
+| 400 | Failed to get user info from Google | OAuth token exchange failed |
+| 400 | Missing required user information from Google | Google didn't provide email or user ID |
+| 400 | OAuth authentication failed: <details> | General OAuth error (network, invalid code, etc.) |
+
+**Example:**
+```bash
+# This endpoint is called automatically by Google after user consent
+# You cannot call it directly - it requires valid OAuth state and code
+```
+
+---
+
 ## General Endpoints
 
 ### `GET /about.json`

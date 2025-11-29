@@ -96,3 +96,54 @@ def password_complexity(password):
             if lower and upper and special:
                 return True
     return False
+
+
+def find_or_create_oauth_user(provider, provider_user_id, email, name=None):
+    """Find or create a user from OAuth provider data"""
+    from database.models import db
+
+    # Check if user already Oauthed with Google before
+    user = User.query.filter_by(
+        oauth_provider=provider,
+        oauth_provider_id=provider_user_id
+    ).first()
+
+    if user:
+        return user
+
+    # Check if a user email already exists from classic regestration
+    existing_user = User.query.filter_by(email=email).first()
+    if existing_user:
+        # Link OAuth account to existing local account
+        existing_user.oauth_provider = provider
+        existing_user.oauth_provider_id = provider_user_id
+        db.session.commit()
+        return existing_user
+
+    # Create new user from OAuth data
+    # Generate username
+    if name:
+        base_username = name.lower().replace(' ', '_')
+    else:
+        base_username = email.split('@')[0]
+
+    # Ensure username is unique
+    username = base_username
+    counter = 1
+    while User.query.filter_by(username=username).first():
+        username = f"{base_username}_{counter}"
+        counter += 1
+
+    # Create new user
+    new_user = User(
+        username=username,
+        email=email,
+        password_hash=None,
+        oauth_provider=provider,
+        oauth_provider_id=provider_user_id
+    )
+
+    db.session.add(new_user)
+    db.session.commit()
+
+    return new_user

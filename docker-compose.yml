@@ -3,13 +3,15 @@ services:
     image: postgres:15
     container_name: area_database
     environment:
-      - POSTGRES_DB=area_db
-      - POSTGRES_USER=area_user
-      - POSTGRES_PASSWORD=area_password
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    networks:
+      - area_network
 
   server:
     build:
@@ -19,22 +21,17 @@ services:
     ports:
       - "8080:8080"
     environment:
-      - DATABASE_URL=postgresql://area_user:area_password@database:5432/area_db
-      - FLASK_APP=app.py
-      - FLASK_ENV=development
+      DATABASE_URL: ${DATABASE_URL}
+      FLASK_APP: ${FLASK_APP}
+      FLASK_ENV: ${FLASK_ENV}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+      CORS_ORIGINS: ${CORS_ORIGINS}
     volumes:
       - ./server:/app
     depends_on:
       - database
-
-  client_mobile:
-    build:
-      context: ./client
-      dockerfile: Dockerfile.mobile
-    container_name: area_client_mobile
-    volumes:
-      - mobile_build:/build
-    command: echo "React Native mobile client build placeholder"
+    networks:
+      - area_network
 
   client_web:
     build:
@@ -43,14 +40,23 @@ services:
     container_name: area_client_web
     ports:
       - "8081:8081"
+    environment:
+      - REACT_APP_API_URL=http://localhost:8080
+      - WATCHPACK_POLLING=true
+      - CHOKIDAR_USEPOLLING=true
     volumes:
-      - mobile_build:/mobile_build
       - ./client/web:/app
+      - /app/node_modules
     depends_on:
       - server
-      - client_mobile
-    command: echo "Web client placeholder - will serve static files"
+    networks:
+      - area_network
+    stdin_open: true
+    tty: true
 
 volumes:
   postgres_data:
-  mobile_build:
+
+networks:
+  area_network:
+    driver: bridge

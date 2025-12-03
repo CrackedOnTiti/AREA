@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import LoginPage from './pages/LoginPage';
+import RegisterPage from './pages/RegisterPage';
 
 /**
  * Public Route Component
@@ -30,16 +31,16 @@ function App() {
             } 
           />
           
-          {/* Placeholder routes */}
           <Route 
             path="/register" 
             element={
-              <div className="flex items-center justify-center h-screen text-2xl">
-                Register Page (Coming Soon)
-              </div>
+              <PublicRoute>
+                <RegisterPage />
+              </PublicRoute>
             } 
           />
           
+          {/* Placeholder routes */}
           <Route 
             path="/dashboard" 
             element={

@@ -14,9 +14,11 @@ COPY web/ ./
 # Expose port
 EXPOSE 8081
 
-# Environment for Docker hot-reload
+# Environment variables
+ENV PORT=8081
 ENV WATCHPACK_POLLING=true
 ENV CHOKIDAR_USEPOLLING=true
+ENV HOST=0.0.0.0
 
 # Start dev server
 CMD ["npm", "start"]

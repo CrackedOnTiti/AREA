@@ -1,6 +1,6 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, url_for, redirect, current_app
 from database.models import db, User
-from utils.auth_utils import hash_password, verify_password, generate_token, require_auth, password_complexity
+from utils.auth_utils import hash_password, verify_password, generate_token, require_auth, password_complexity, find_or_create_oauth_user
 
 auth_bp = Blueprint('auth', __name__, url_prefix='/api/auth')
 
@@ -94,3 +94,61 @@ def get_current_user(current_user):
     return jsonify({
         'user': current_user.to_dict()
     }), 200
+
+
+@auth_bp.route('/google/login', methods=['GET'])
+def google_login():
+    """Initiate Google OAuth2 login"""
+    # Get Oauth instance from app extensions
+    oauth = current_app.extensions['authlib.integrations.flask_client']
+
+    # Generate callback URL
+    redirect_uri = url_for('auth.google_callback', _external=True)
+
+    # Redirect user to Google for auth
+    return oauth.google.authorize_redirect(redirect_uri)
+
+
+@auth_bp.route('/google/callback', methods=['GET'])
+def google_callback():
+    """Google OAuth2 callback"""
+    try:
+        # Get Oauth instance from app extensions
+        oauth = current_app.extensions['authlib.integrations.flask_client']
+
+        # Get access token from Google
+        token = oauth.google.authorize_access_token()
+
+        # Parse user info from the token
+        user_info = token.get('userinfo')
+        if not user_info:
+            return jsonify({'error': 'Failed to get user info from Google'}), 400
+
+        # Extract user data
+        google_user_id = user_info.get('sub')  # Google's user ID
+        email = user_info.get('email')
+        name = user_info.get('name')
+
+        if not google_user_id or not email:
+            return jsonify({'error': 'Missing required user information from Google'}), 400
+
+        # Find or create user
+        user = find_or_create_oauth_user(
+            provider='google',
+            provider_user_id=google_user_id,
+            email=email,
+            name=name
+        )
+
+        # Generate JWT token
+        jwt_token = generate_token(user.id)
+
+        # Return token and user info
+        return jsonify({
+            'message': 'Google login successful',
+            'token': jwt_token,
+            'user': user.to_dict()
+        }), 200
+
+    except Exception as e:
+        return jsonify({'error': f'OAuth authentication failed: {str(e)}'}), 400

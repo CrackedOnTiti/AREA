@@ -2,6 +2,7 @@ from database.models import db, Service, Action, Reaction
 
 # ANSI color codes for terminal output
 GREEN = '\033[92m'
+CYAN = '\033[96m'
 RESET = '\033[0m'
 
 
@@ -69,7 +70,7 @@ def seed_timer_service():
     )
     db.session.add(action_interval)
 
-    print(f"{GREEN}    ✓ Created Timer service with 2 actions{RESET}")
+    print(f"{GREEN}      Created Timer service with 2 actions{RESET}")
     return timer
 
 
@@ -122,7 +123,7 @@ def seed_email_service():
     )
     db.session.add(reaction_send_email)
 
-    print(f"{GREEN}    ✓ Created Email service with 1 reaction{RESET}")
+    print(f"{GREEN}      Created Email service with 1 reaction{RESET}")
     return email
 
 
@@ -190,13 +191,13 @@ def seed_system_service():
     )
     db.session.add(reaction_notify)
 
-    print(f"{GREEN}    ✓ Created System service with 2 reactions{RESET}")
+    print(f"{GREEN}      Created System service with 2 reactions{RESET}")
     return system
 
 
 def seed_all():
     """Seed all services for MVP"""
-    print("\n=== Starting database seeding ===\n")
+    print(f"\n{CYAN}=== Starting database seeding ==={RESET}\n")
 
     seed_admin_user()
     seed_timer_service()
@@ -206,9 +207,9 @@ def seed_all():
     db.session.commit()
 
     print(f"\n{GREEN}=== Seeding completed successfully ==={RESET}")
-    print(f"{GREEN}Total services: {Service.query.count()}{RESET}")
-    print(f"{GREEN}Total actions: {Action.query.count()}{RESET}")
-    print(f"{GREEN}Total reactions: {Reaction.query.count()}{RESET}\n")
+    print(f"{CYAN}Total services: {Service.query.count()}{RESET}")
+    print(f"{CYAN}Total actions: {Action.query.count()}{RESET}")
+    print(f"{CYAN}Total reactions: {Reaction.query.count()}{RESET}\n")
 
 
 if __name__ == '__main__':

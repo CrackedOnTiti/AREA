@@ -1,5 +1,9 @@
 from database.models import db, Service, Action, Reaction
 
+# ANSI color codes for terminal output
+GREEN = '\033[92m'
+RESET = '\033[0m'
+
 
 def seed_admin_user():
     """Create default admin account"""
@@ -65,7 +69,7 @@ def seed_timer_service():
     )
     db.session.add(action_interval)
 
-    print(f"    Created Timer service with 2 actions")
+    print(f"{GREEN}    ✓ Created Timer service with 2 actions{RESET}")
     return timer
 
 
@@ -118,7 +122,7 @@ def seed_email_service():
     )
     db.session.add(reaction_send_email)
 
-    print(f"    Created Email service with 1 reaction")
+    print(f"{GREEN}    ✓ Created Email service with 1 reaction{RESET}")
     return email
 
 
@@ -186,7 +190,7 @@ def seed_system_service():
     )
     db.session.add(reaction_notify)
 
-    print(f"    Created System service with 2 reactions")
+    print(f"{GREEN}    ✓ Created System service with 2 reactions{RESET}")
     return system
 
 
@@ -201,10 +205,10 @@ def seed_all():
 
     db.session.commit()
 
-    print("\n=== Seeding completed successfully ===")
-    print(f"Total services: {Service.query.count()}")
-    print(f"Total actions: {Action.query.count()}")
-    print(f"Total reactions: {Reaction.query.count()}\n")
+    print(f"\n{GREEN}=== Seeding completed successfully ==={RESET}")
+    print(f"{GREEN}Total services: {Service.query.count()}{RESET}")
+    print(f"{GREEN}Total actions: {Action.query.count()}{RESET}")
+    print(f"{GREEN}Total reactions: {Reaction.query.count()}{RESET}\n")
 
 
 if __name__ == '__main__':

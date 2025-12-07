@@ -6,6 +6,7 @@ from database.models import db
 from config import Config
 from routes.main import main_bp
 from routes.auth import auth_bp
+from seed_data import seed_all
 
 time.sleep(5)  # need to wait for db service first
 
@@ -35,6 +36,9 @@ oauth.register(
 with app.app_context():
     db.create_all()
     print("Database tables initialized")
+
+    # Seed initial services (Timer, Email, System)
+    seed_all()
 
 # blueprints
 app.register_blueprint(main_bp)

@@ -42,13 +42,7 @@ def decode_token(token):
 
 
 def require_auth(f):
-    """
-    Decorator to protect routes that require authentication
-    Usage: @require_auth
-
-    Expects Authorization header: Bearer <token>
-    Injects current_user into the route function
-    """
+    """Decorator to protect routes that require authentication"""
     @wraps(f)
     def decorated_function(*args, **kwargs):
         token = None

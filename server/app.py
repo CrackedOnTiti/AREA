@@ -6,6 +6,7 @@ from database.models import db
 from config import Config
 from routes.main import main_bp
 from routes.auth import auth_bp
+from routes.areas import areas_bp
 from seed_data import seed_all
 
 time.sleep(5)  # need to wait for db service first
@@ -43,6 +44,7 @@ with app.app_context():
 # blueprints
 app.register_blueprint(main_bp)
 app.register_blueprint(auth_bp)
+app.register_blueprint(areas_bp)
 
 if __name__ == '__main__':
     print("Starting Flask server on port 8080...")

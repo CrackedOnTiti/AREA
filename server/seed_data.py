@@ -1,4 +1,5 @@
-from database.models import db, Service, Action, Reaction
+from database.models import db, Service, Action, Reaction, User
+from utils.auth_utils import hash_password
 
 # ANSI color codes for terminal output
 GREEN = '\033[92m'
@@ -8,7 +9,23 @@ RESET = '\033[0m'
 
 def seed_admin_user():
     """Create default admin account"""
-    print("TODO: ADD ADMIN ACCOUNT CREATION LOGIC")
+    # Check if admin already exists
+    admin = User.query.filter_by(username='admin').first()
+    if admin:
+        print("  Admin user already exists, skipping...")
+        return admin
+
+    # Create admin user
+    admin = User(
+        username='admin',
+        email='admin@area.local',
+        password_hash=hash_password('Admin123!')
+    )
+    db.session.add(admin)
+    db.session.flush()
+
+    print(f"{GREEN}      Created admin user (admin / Admin123!){RESET}")
+    return admin
 
 
 def seed_timer_service():

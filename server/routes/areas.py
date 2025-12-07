@@ -1,20 +1,9 @@
 from flask import Blueprint, request, jsonify
-from database.models import db, UserArea, WorkflowLog, Action, Reaction, Service
+from database.models import db, UserArea, WorkflowLog, Action, Reaction
 from utils.auth_utils import require_auth
 from datetime import datetime, timezone
 
 areas_bp = Blueprint('areas', __name__, url_prefix='/api/areas')
-
-
-@areas_bp.route('/services', methods=['GET'])
-@require_auth
-def list_services(current_user):
-    """List all available services with their actions and reactions"""
-    services = Service.query.filter_by(is_active=True).all()
-
-    return jsonify({
-        'services': [service.to_dict() for service in services]
-    }), 200
 
 
 @areas_bp.route('', methods=['POST'])

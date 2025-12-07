@@ -82,8 +82,11 @@ class Action(db.Model):
 
     def to_dict(self):
         return {
+            'id': self.id,
             'name': self.name,
-            'description': self.description
+            'display_name': self.display_name,
+            'description': self.description,
+            'config_schema': self.config_schema
         }
 
 
@@ -105,8 +108,11 @@ class Reaction(db.Model):
 
     def to_dict(self):
         return {
+            'id': self.id,
             'name': self.name,
-            'description': self.description
+            'display_name': self.display_name,
+            'description': self.description,
+            'config_schema': self.config_schema
         }
 
 

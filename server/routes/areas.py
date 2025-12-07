@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify
 from database.models import db, UserArea, WorkflowLog, Action, Reaction, Service
 from utils.auth_utils import require_auth
-from datetime import datetime
+from datetime import datetime, timezone
 
 areas_bp = Blueprint('areas', __name__, url_prefix='/api/areas')
 
@@ -132,7 +132,7 @@ def update_area(current_user, area_id):
     if 'is_active' in data:
         area.is_active = data['is_active']
 
-    area.updated_at = datetime.utcnow()
+    area.updated_at = datetime.now(timezone.utc)
     db.session.commit()
 
     return jsonify({
@@ -156,7 +156,7 @@ def toggle_area(current_user, area_id):
 
     # Toggle active status
     area.is_active = not area.is_active
-    area.updated_at = datetime.utcnow()
+    area.updated_at = datetime.now(timezone.utc)
     db.session.commit()
 
     return jsonify({

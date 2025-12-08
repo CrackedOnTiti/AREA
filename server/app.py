@@ -9,6 +9,8 @@ from routes.auth import auth_bp
 from routes.areas import areas_bp
 from routes.services import services_bp
 from seed_data import seed_all
+from scheduler import init_scheduler, shutdown_scheduler
+import atexit
 
 time.sleep(5)  # need to wait for db service first
 
@@ -41,6 +43,12 @@ with app.app_context():
 
     # Seed initial services (Timer, Email, System)
     seed_all()
+
+# Initialize scheduler
+init_scheduler(app)
+
+# Register shutdown handler
+atexit.register(shutdown_scheduler)
 
 # blueprints
 app.register_blueprint(main_bp)

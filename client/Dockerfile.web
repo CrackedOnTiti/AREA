@@ -2,9 +2,23 @@ FROM node:18-alpine
 
 WORKDIR /app
 
-# Install dependencies for React and run build yatta yatta yatta
+# Copy package files
+COPY web/package*.json ./
 
+# Install dependencies
+RUN npm install
+
+# Copy source code
+COPY web/ ./
+
+# Expose port
 EXPOSE 8081
 
-# Placeholder
-CMD ["echo", "React web client up"]
+# Environment variables
+ENV PORT=8081
+ENV WATCHPACK_POLLING=true
+ENV CHOKIDAR_USEPOLLING=true
+ENV HOST=0.0.0.0
+
+# Start dev server
+CMD ["npm", "start"]

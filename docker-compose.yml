@@ -50,19 +50,25 @@ services:
     command: echo "React Native mobile client build placeholder"
 
   client_web:
-    build:
+    build:  
       context: ./client
       dockerfile: Dockerfile.web
     container_name: area_client_web
     ports:
       - "8081:8081"
+    environment:
+      REACT_APP_API_URL: http://localhost:8080
+      WATCHPACK_POLLING: "true"
+      CHOKIDAR_USEPOLLING: "true"
     volumes:
       - mobile_build:/mobile_build
       - ./client/web:/app
+      - /app/node_modules
     depends_on:
       - server
       - client_mobile
-    command: echo "Web client placeholder - will serve static files"
+    stdin_open: true
+    tty: true
 
 volumes:
   postgres_data:

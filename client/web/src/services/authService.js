@@ -1,71 +1,136 @@
-/**
- * Authentication Service - Handles all API calls to Flask backend
- */
-
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
 
 /**
- * Login user with username/email and password
- * @param {Object} credentials - { username OR email, password }
- * @returns {Promise<Object>} - { token, user }
+ * Récupère le token JWT depuis localStorage
  */
-export const login = async (credentials) => {
+export const getToken = () => {
+  return localStorage.getItem('token');
+};
+
+/**
+ * Stocke le token JWT dans localStorage
+ */
+export const setToken = (token) => {
+  localStorage.setItem('token', token);
+};
+
+/**
+ * Supprime le token JWT de localStorage
+ */
+export const removeToken = () => {
+  localStorage.removeItem('token');
+};
+
+/**
+ * Vérifie si l'utilisateur est authentifié
+ */
+export const isAuthenticated = () => {
+  return !!getToken();
+};
+
+/**
+ * Récupère l'utilisateur stocké dans localStorage
+ */
+export const getStoredUser = () => {
+  const userJson = localStorage.getItem('user');
+  return userJson ? JSON.parse(userJson) : null;
+};
+
+/**
+ * Stocke l'utilisateur dans localStorage
+ */
+export const setStoredUser = (user) => {
+  localStorage.setItem('user', JSON.stringify(user));
+};
+
+/**
+ * Supprime l'utilisateur de localStorage
+ */
+export const removeStoredUser = () => {
+  localStorage.removeItem('user');
+};
+
+/**
+ * Inscription d'un nouvel utilisateur
+ */
+export const register = async (username, email, password) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
+    const response = await fetch(`${API_URL}/api/auth/register`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(credentials),
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, email, password }),
     });
 
-    const data = await response.json();
-
     if (!response.ok) {
-      throw new Error(data.error || 'Login failed');
+      const error = await response.json();
+      throw new Error(error.error || 'Registration failed');
     }
 
-    return data; // { message, token, user }
+    const data = await response.json();
+    
+    // Stocker le token et l'utilisateur
+    if (data.token) {
+      setToken(data.token);
+    }
+    if (data.user) {
+      setStoredUser(data.user);
+    }
+    
+    return data;
   } catch (error) {
+    console.error('Register error:', error);
     throw error;
   }
 };
 
 /**
- * Register a new user
- * @param {Object} userData - { username, email, password }
- * @returns {Promise<Object>} - { token, user }
+ * Connexion d'un utilisateur
  */
-export const register = async (userData) => {
+export const login = async (usernameOrEmail, password) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
+    const body = usernameOrEmail.includes('@')
+      ? { email: usernameOrEmail, password }
+      : { username: usernameOrEmail, password };
+
+    const response = await fetch(`${API_URL}/api/auth/login`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(userData),
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
     });
 
-    const data = await response.json();
-
     if (!response.ok) {
-      throw new Error(data.error || 'Registration failed');
+      const error = await response.json();
+      throw new Error(error.error || 'Login failed');
     }
 
-    return data; // { message, token, user }
+    const data = await response.json();
+    
+    // Stocker le token et l'utilisateur
+    if (data.token) {
+      setToken(data.token);
+    }
+    if (data.user) {
+      setStoredUser(data.user);
+    }
+    
+    return data;
   } catch (error) {
+    console.error('Login error:', error);
     throw error;
   }
 };
 
 /**
- * Get current authenticated user
- * @param {string} token - JWT token
- * @returns {Promise<Object>} - { user }
+ * Récupère l'utilisateur actuel depuis l'API
  */
-export const getCurrentUser = async (token) => {
+export const getCurrentUser = async () => {
+  const token = getToken();
+  if (!token) {
+    throw new Error('No token found');
+  }
+
   try {
-    const response = await fetch(`${API_BASE_URL}/api/auth/me`, {
+    const response = await fetch(`${API_URL}/api/auth/me`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -73,64 +138,49 @@ export const getCurrentUser = async (token) => {
       },
     });
 
-    const data = await response.json();
-
     if (!response.ok) {
-      throw new Error(data.error || 'Failed to get user info');
+      throw new Error('Failed to fetch user');
     }
 
-    return data; // { user }
+    const data = await response.json();
+    
+    // Mettre à jour l'utilisateur stocké
+    if (data.user) {
+      setStoredUser(data.user);
+    }
+    
+    return data;
   } catch (error) {
+    console.error('Get current user error:', error);
+    // Si le token est invalide, nettoyer le localStorage
+    removeToken();
+    removeStoredUser();
     throw error;
   }
 };
 
 /**
- * Logout user (clear localStorage)
+ * Déconnexion de l'utilisateur
  */
 export const logout = () => {
-  localStorage.removeItem('token');
-  localStorage.removeItem('user');
+  removeToken();
+  removeStoredUser();
 };
 
 /**
- * Check if user is authenticated
- * @returns {boolean}
+ * Connexion avec Google (à implémenter)
  */
-export const isAuthenticated = () => {
-  const token = localStorage.getItem('token');
-  return !!token;
+export const loginWithGoogle = async () => {
+  // TODO: Implémenter OAuth2 Google
+  console.warn('Google OAuth not implemented yet');
+  throw new Error('Google OAuth not implemented yet');
 };
 
 /**
- * Get stored token from localStorage
- * @returns {string|null}
+ * Connexion avec Facebook (à implémenter)
  */
-export const getToken = () => {
-  return localStorage.getItem('token');
-};
-
-/**
- * Store token in localStorage
- * @param {string} token
- */
-export const setToken = (token) => {
-  localStorage.setItem('token', token);
-};
-
-/**
- * Get stored user from localStorage
- * @returns {Object|null}
- */
-export const getStoredUser = () => {
-  const user = localStorage.getItem('user');
-  return user ? JSON.parse(user) : null;
-};
-
-/**
- * Store user in localStorage
- * @param {Object} user
- */
-export const setStoredUser = (user) => {
-  localStorage.setItem('user', JSON.stringify(user));
+export const loginWithFacebook = async () => {
+  // TODO: Implémenter OAuth2 Facebook
+  console.warn('Facebook OAuth not implemented yet');
+  throw new Error('Facebook OAuth not implemented yet');
 };

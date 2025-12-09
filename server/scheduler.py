@@ -37,6 +37,63 @@ def check_time_matches(area: UserArea) -> bool:
     return False
 
 
+def check_gmail_email_received(area: UserArea) -> dict:
+    """Check Gmail for new emails matching criteria"""
+    # Get user's Gmail connection
+    action = Action.query.get(area.action_id)
+    gmail_service = Service.query.filter_by(name='gmail').first()
+
+    if not gmail_service:
+        return {'triggered': False, 'error': 'Gmail service not found'}
+
+    connection = UserServiceConnection.query.filter_by(
+        user_id=area.user_id,
+        service_id=gmail_service.id
+    ).first()
+
+    if not connection:
+        return {'triggered': False, 'error': 'Gmail not connected for this user'}
+
+    # Create Gmail API service
+    gmail_api = create_gmail_service(connection.access_token, connection.refresh_token)
+    if not gmail_api:
+        return {'triggered': False, 'error': 'Failed to create Gmail service'}
+
+    # Calculate "since" timestamp (check emails from last 5 minutes)
+    since = datetime.now(timezone.utc) - timedelta(minutes=5)
+    since_timestamp = int(since.timestamp())
+
+    # Fetch new emails
+    emails = fetch_new_emails(gmail_api, since_timestamp=since_timestamp, max_results=10)
+
+    if not emails:
+        return {'triggered': False}
+
+    # Check each email against action criteria
+    for email in emails:
+        # Check if we've already processed this email
+        existing_log = WorkflowLog.query.filter_by(
+            area_id=area.id,
+            message=f"Email from {email['sender']}: {email['subject']}"
+        ).first()
+
+        if existing_log:
+            continue  # Already processed
+
+        # Check action type
+        if action.name == 'email_received_from':
+            target_sender = area.action_config.get('sender')
+            if target_sender and check_sender_match(email, target_sender):
+                return {'triggered': True, 'email_data': email}
+
+        elif action.name == 'email_subject_contains':
+            keyword = area.action_config.get('keyword')
+            if keyword and check_subject_contains(email, keyword):
+                return {'triggered': True, 'email_data': email}
+
+    return {'triggered': False}
+
+
 def execute_send_email(area: UserArea) -> dict:
     """Execute the send_email reaction"""
     config = area.reaction_config
@@ -81,24 +138,8 @@ def check_and_execute_workflows(app):
         executed_count = 0
 
         try:
-            # Get all active workflows with timer actions
-            timer_service_actions = Action.query.filter(
-                Action.service_id.in_(
-                    db.session.query(db.func.distinct(Action.service_id))
-                    .filter(Action.name == 'time_matches')
-                )
-            ).all()
-
-            timer_action_ids = [action.id for action in timer_service_actions]
-
-            if not timer_action_ids:
-                return
-
-            # Query active areas with timer actions
-            active_areas = UserArea.query.filter(
-                UserArea.is_active == True,
-                UserArea.action_id.in_(timer_action_ids)
-            ).all()
+            # Query all active workflows
+            active_areas = UserArea.query.filter(UserArea.is_active == True).all()
 
             for area in active_areas:
                 try:
@@ -109,10 +150,18 @@ def check_and_execute_workflows(app):
                         continue
 
                     should_trigger = False
+                    trigger_metadata = None
 
                     # Check action type
                     if action.name == 'time_matches':
                         should_trigger = check_time_matches(area)
+
+                    elif action.name in ['email_received_from', 'email_subject_contains']:
+                        result = check_gmail_email_received(area)
+                        should_trigger = result.get('triggered', False)
+                        if should_trigger:
+                            email_data = result.get('email_data')
+                            trigger_metadata = f"Email from {email_data['sender']}: {email_data['subject']}"
 
                     if should_trigger:
                         # Execute the reaction
@@ -127,10 +176,11 @@ def check_and_execute_workflows(app):
                         db.session.commit()
 
                         # Log execution
+                        log_message = trigger_metadata if trigger_metadata else (result.get('message') or result.get('error', 'Unknown result'))
                         log_entry = WorkflowLog(
                             area_id=area.id,
                             status='success' if result['success'] else 'failed',
-                            message=result.get('message') or result.get('error', 'Unknown result'),
+                            message=log_message,
                             triggered_at=start_time,
                             execution_time_ms=execution_time_ms
                         )

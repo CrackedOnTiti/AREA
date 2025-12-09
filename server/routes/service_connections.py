@@ -31,14 +31,27 @@ def list_connections(current_user):
     return jsonify({'connections': result}), 200
 
 
-@connections_bp.route('/gmail', methods=['POST'])
-@require_auth
-def connect_gmail(current_user):
+@connections_bp.route('/gmail', methods=['GET', 'POST'])
+def connect_gmail():
     """Initiate Gmail OAuth flow"""
     from app import oauth
+    from utils.auth_utils import decode_token
+
+    # Try to get token from Authorization header or URL param
+    token = request.headers.get('Authorization', '').replace('Bearer ', '')
+    if not token:
+        token = request.args.get('token')
+
+    if not token:
+        return jsonify({'error': 'Authentication required'}), 401
+
+    # Decode token to get user
+    user_id = decode_token(token)
+    if not user_id:
+        return jsonify({'error': 'Invalid token'}), 401
 
     # Store user_id in session for callback
-    session['connecting_user_id'] = current_user.id
+    session['connecting_user_id'] = user_id
 
     # Redirect to Google OAuth with Gmail scope
     redirect_uri = url_for('service_connections.gmail_callback', _external=True)

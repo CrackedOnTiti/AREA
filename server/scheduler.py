@@ -1,8 +1,9 @@
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.interval import IntervalTrigger
-from database.models import db, UserArea, WorkflowLog, Action, Reaction
+from database.models import db, UserArea, WorkflowLog, Action, Reaction, UserServiceConnection, Service
 from utils.email_sender import send_email
+from utils.gmail_client import create_gmail_service, fetch_new_emails, check_sender_match, check_subject_contains
 from config import Config
 
 scheduler = None

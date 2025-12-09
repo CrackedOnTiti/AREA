@@ -46,9 +46,13 @@ def connect_gmail():
         return jsonify({'error': 'Authentication required'}), 401
 
     # Decode token to get user
-    user_id = decode_token(token)
-    if not user_id:
+    payload = decode_token(token)
+    if not payload:
         return jsonify({'error': 'Invalid token'}), 401
+
+    user_id = payload.get('user_id')
+    if not user_id:
+        return jsonify({'error': 'Invalid token payload'}), 401
 
     # Store user_id in session for callback
     session['connecting_user_id'] = user_id

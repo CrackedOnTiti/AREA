@@ -8,6 +8,7 @@ from routes.main import main_bp
 from routes.auth import auth_bp
 from routes.areas import areas_bp
 from routes.services import services_bp
+from routes.service_connections import connections_bp
 from seed_data import seed_all
 from scheduler import init_scheduler, shutdown_scheduler
 import atexit
@@ -32,8 +33,8 @@ oauth.register(
     client_secret=Config.GOOGLE_CLIENT_SECRET,
     server_metadata_url=Config.GOOGLE_DISCOVERY_URL,
     client_kwargs={
-        'scope': 'openid email profile'
-    }
+        'scope': 'openid email profile https://www.googleapis.com/auth/gmail.readonly'
+    } # Scope basically specifically asks for something during handshake
 )
 
 # create tables (basically mkdir -p)
@@ -55,6 +56,7 @@ app.register_blueprint(main_bp)
 app.register_blueprint(auth_bp)
 app.register_blueprint(areas_bp)
 app.register_blueprint(services_bp)
+app.register_blueprint(connections_bp)
 
 if __name__ == '__main__':
     print("Starting Flask server on port 8080...")

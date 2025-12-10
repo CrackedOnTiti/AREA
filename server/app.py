@@ -1,34 +1,68 @@
 import time
-import os
-from flask import Flask, request
+from flask import Flask, send_from_directory
+from flask_cors import CORS
+from authlib.integrations.flask_client import OAuth
 from database.models import db
-from helper import get_about_json
-time.sleep(5) # need to wait for db service first
+from config import Config
+from routes.main import main_bp
+from routes.auth import auth_bp
+from routes.areas import areas_bp
+from routes.services import services_bp
+from routes.service_connections import connections_bp
+from seed_data import seed_all
+from scheduler import init_scheduler, shutdown_scheduler
+import atexit
+import os
+
+time.sleep(5)  # need to wait for db service first
 
 app = Flask(__name__)
 
-DATABASE_URL = os.getenv('DATABASE_URL', 'postgresql://area_user:area_password@localhost:5432/area_db')
-app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config.from_object(Config)
 
+# Initialize CORS
+CORS(app, origins=Config.CORS_ORIGINS)
+
+# Initialize database
 db.init_app(app)
 
-# basically mkdir -p
+# Initialize OAuth
+oauth = OAuth(app)
+oauth.register(
+    name='google',
+    client_id=Config.GOOGLE_CLIENT_ID,
+    client_secret=Config.GOOGLE_CLIENT_SECRET,
+    server_metadata_url=Config.GOOGLE_DISCOVERY_URL,
+    client_kwargs={
+        'scope': 'openid email profile https://www.googleapis.com/auth/gmail.readonly'
+    } # Scope basically specifically asks for something during handshake
+)
+
+# create tables (basically mkdir -p)
 with app.app_context():
     db.create_all()
     print("Database tables initialized")
 
-@app.route('/')
-def index():
-    return "Nibba"
+    # Seed initial services (Timer, Email, System)
+    seed_all()
 
-@app.route('/about.json')
-def about():
-    """
-    Returns information about available services, actions, and reactions.
-    Required endpoint as per project specification.
-    """
-    return get_about_json(request)
+# Initialize scheduler
+init_scheduler(app)
+
+# Register shutdown handler
+atexit.register(shutdown_scheduler)
+
+# blueprints
+app.register_blueprint(main_bp)
+app.register_blueprint(auth_bp)
+app.register_blueprint(areas_bp)
+app.register_blueprint(services_bp)
+app.register_blueprint(connections_bp)
+
+# Serve demo page
+@app.route('/demo')
+def demo():
+    return send_from_directory('static', 'demo.html')
 
 if __name__ == '__main__':
     print("Starting Flask server on port 8080...")

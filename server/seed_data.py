@@ -1,4 +1,5 @@
-from database.models import db, Service, Action, Reaction
+from database.models import db, Service, Action, Reaction, User
+from utils.auth_utils import hash_password
 
 # ANSI color codes for terminal output
 GREEN = '\033[92m'
@@ -8,7 +9,23 @@ RESET = '\033[0m'
 
 def seed_admin_user():
     """Create default admin account"""
-    print("TODO: ADD ADMIN ACCOUNT CREATION LOGIC")
+    # Check if admin already exists
+    admin = User.query.filter_by(username='admin').first()
+    if admin:
+        print("  Admin user already exists, skipping...")
+        return admin
+
+    # Create admin user
+    admin = User(
+        username='admin',
+        email='admin@area.local',
+        password_hash=hash_password('Admin123!')
+    )
+    db.session.add(admin)
+    db.session.flush()
+
+    print(f"{GREEN}      Created admin user (admin / Admin123!){RESET}")
+    return admin
 
 
 def seed_timer_service():
@@ -195,14 +212,77 @@ def seed_system_service():
     return system
 
 
+def seed_gmail_service():
+    """Seed Gmail service with email detection actions"""
+    # Check if already exists
+    gmail = Service.query.filter_by(name='gmail').first()
+    if gmail:
+        print("  Gmail service already exists, skipping...")
+        return gmail
+
+    # Create Gmail service
+    gmail = Service(
+        name='gmail',
+        display_name='Gmail',
+        description='Email detection and monitoring',
+        requires_oauth=True,
+        is_active=True
+    )
+    db.session.add(gmail)
+    db.session.flush()
+
+    # Action: email_received_from
+    action1 = Action(
+        service_id=gmail.id,
+        name='email_received_from',
+        display_name='Email Received From',
+        description='Triggers when email is received from a specific sender',
+        config_schema={
+            'type': 'object',
+            'properties': {
+                'sender': {
+                    'type': 'string',
+                    'description': 'Email address of the sender',
+                    'pattern': '^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$'
+                }
+            },
+            'required': ['sender']
+        }
+    )
+    db.session.add(action1)
+
+    # Action: email_subject_contains
+    action2 = Action(
+        service_id=gmail.id,
+        name='email_subject_contains',
+        display_name='Email Subject Contains',
+        description='Triggers when email subject contains specific keyword',
+        config_schema={
+            'type': 'object',
+            'properties': {
+                'keyword': {
+                    'type': 'string',
+                    'description': 'Keyword to search for in subject'
+                }
+            },
+            'required': ['keyword']
+        }
+    )
+    db.session.add(action2)
+
+    print(f"{GREEN}      Created Gmail service with 2 actions{RESET}")
+    return gmail
+
+
 def seed_all():
-    """Seed all services for MVP"""
+    """Seed all services"""
     print(f"\n{CYAN}=== Starting database seeding ==={RESET}\n")
 
     seed_admin_user()
     seed_timer_service()
     seed_email_service()
     seed_system_service()
+    seed_gmail_service()
 
     db.session.commit()
 

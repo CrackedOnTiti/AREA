@@ -82,8 +82,11 @@ class Action(db.Model):
 
     def to_dict(self):
         return {
+            'id': self.id,
             'name': self.name,
-            'description': self.description
+            'display_name': self.display_name,
+            'description': self.description,
+            'config_schema': self.config_schema
         }
 
 
@@ -105,8 +108,11 @@ class Reaction(db.Model):
 
     def to_dict(self):
         return {
+            'id': self.id,
             'name': self.name,
-            'description': self.description
+            'display_name': self.display_name,
+            'description': self.description,
+            'config_schema': self.config_schema
         }
 
 
@@ -188,4 +194,41 @@ class WorkflowLog(db.Model):
             'message': self.message,
             'triggered_at': self.triggered_at.isoformat(),
             'execution_time_ms': self.execution_time_ms
+        }
+
+
+class UserServiceConnection(db.Model):
+    __tablename__ = 'user_service_connections'
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    service_id = db.Column(db.Integer, db.ForeignKey('services.id'), nullable=False)
+    access_token = db.Column(db.Text, nullable=False)
+    refresh_token = db.Column(db.Text, nullable=True)
+    token_expires_at = db.Column(db.DateTime, nullable=True)
+    connected_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
+    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc), nullable=False)
+
+    # Ensure one connection per user per service
+    __table_args__ = (
+        db.UniqueConstraint('user_id', 'service_id', name='unique_user_service'),
+    )
+
+    # Relationships
+    user = db.relationship('User', backref='service_connections')
+    service = db.relationship('Service', backref='user_connections')
+
+    def __repr__(self):
+        return f'<UserServiceConnection user={self.user_id} service={self.service_id}>'
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'service_id': self.service_id,
+            'service_name': self.service.name if self.service else None,
+            'service_display_name': self.service.display_name if self.service else None,
+            'connected_at': self.connected_at.isoformat(),
+            'updated_at': self.updated_at.isoformat(),
+            'token_expires_at': self.token_expires_at.isoformat() if self.token_expires_at else None
         }

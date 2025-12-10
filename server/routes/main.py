@@ -1,5 +1,5 @@
 from flask import Blueprint, request
-from utils.helpers import get_about_json
+from utils.about import get_about_json
 
 main_bp = Blueprint('main', __name__)
 

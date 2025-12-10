@@ -1,5 +1,5 @@
 import time
-from flask import Flask
+from flask import Flask, send_from_directory
 from flask_cors import CORS
 from authlib.integrations.flask_client import OAuth
 from database.models import db
@@ -12,6 +12,7 @@ from routes.service_connections import connections_bp
 from seed_data import seed_all
 from scheduler import init_scheduler, shutdown_scheduler
 import atexit
+import os
 
 time.sleep(5)  # need to wait for db service first
 
@@ -57,6 +58,11 @@ app.register_blueprint(auth_bp)
 app.register_blueprint(areas_bp)
 app.register_blueprint(services_bp)
 app.register_blueprint(connections_bp)
+
+# Serve demo page
+@app.route('/demo')
+def demo():
+    return send_from_directory('static', 'demo.html')
 
 if __name__ == '__main__':
     print("Starting Flask server on port 8080...")

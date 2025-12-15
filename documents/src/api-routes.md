@@ -1011,3 +1011,97 @@ None required
 curl -X DELETE http://localhost:8080/api/areas/1 \
   -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
 ```
+
+---
+
+### `GET /api/areas/<area_id>/logs`
+
+**Description:**
+Get execution logs for a specific workflow with pagination. Shows history of when the workflow was triggered and execution results.
+
+**Authentication:** Required (Bearer token)
+
+**Request Headers:**
+```
+Authorization: Bearer <token>
+```
+
+**URL Parameters:**
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `area_id` | integer | Yes | ID of the workflow to get logs for |
+
+**Query Parameters:**
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| `page` | integer | No | 1 | Page number for pagination |
+| `per_page` | integer | No | 50 | Number of log entries per page |
+
+**Success Response (200 OK):**
+```json
+{
+  "logs": [
+    {
+      "id": 1,
+      "area_id": 1,
+      "area_name": "Daily Email Reminder",
+      "status": "success",
+      "message": "Email sent successfully",
+      "triggered_at": "2025-12-15T14:00:05Z",
+      "execution_time_ms": 245
+    },
+    {
+      "id": 2,
+      "area_id": 1,
+      "area_name": "Daily Email Reminder",
+      "status": "failed",
+      "message": "SMTP connection failed",
+      "triggered_at": "2025-12-14T14:00:03Z",
+      "execution_time_ms": 1520
+    }
+  ],
+  "total": 2,
+  "page": 1,
+  "per_page": 50,
+  "total_pages": 1
+}
+```
+
+**Response Fields:**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `logs` | array | List of execution logs for the current page |
+| `logs[].id` | integer | Log entry ID |
+| `logs[].area_id` | integer | Workflow ID |
+| `logs[].area_name` | string | Name of the workflow |
+| `logs[].status` | string | Execution status: "success", "failed", or "error" |
+| `logs[].message` | string | Execution message or error description |
+| `logs[].triggered_at` | string | ISO 8601 timestamp of when workflow was triggered |
+| `logs[].execution_time_ms` | integer | Execution time in milliseconds |
+| `total` | integer | Total number of log entries |
+| `page` | integer | Current page number |
+| `per_page` | integer | Number of items per page |
+| `total_pages` | integer | Total number of pages |
+
+**Error Responses:**
+
+| Status | Error | Description |
+|--------|-------|-------------|
+| 401 | Authorization token is missing | No Authorization header provided |
+| 401 | Invalid or expired token | Token is invalid or has expired |
+| 403 | Unauthorized access to this workflow | User doesn't own this workflow |
+| 404 | Workflow not found | Workflow with given ID doesn't exist |
+
+**Example:**
+```bash
+# Get first page with default pagination
+curl -X GET http://localhost:8080/api/areas/1/logs \
+  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+
+# Get page 2 with 20 logs per page
+curl -X GET "http://localhost:8080/api/areas/1/logs?page=2&per_page=20" \
+  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+```

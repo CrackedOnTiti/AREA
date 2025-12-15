@@ -567,6 +567,54 @@ curl -X GET http://localhost:8080/api/connections \
 
 ---
 
+### `GET/POST /api/connections/gmail`
+
+**Description:**
+Initiate the Gmail OAuth2 authentication flow. Redirects the user to Google's consent screen to authorize Gmail access.
+
+**Authentication:** Required (Bearer token or URL parameter)
+
+**Request Headers:**
+```
+Authorization: Bearer <token>
+```
+
+**OR Query Parameters:**
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|---------|
+| `token` | string | Yes (if no header) | JWT authentication token |
+
+**Success Response (302 Redirect):**
+Redirects user to Google OAuth consent screen where they can authorize Gmail access.
+
+**OAuth Scopes Requested:**
+- `openid` - Basic OpenID authentication
+- `email` - User's email address
+- `profile` - User's basic profile information
+- `https://www.googleapis.com/auth/gmail.readonly` - Read-only access to Gmail
+
+**Error Responses:**
+
+| Status | Error | Description |
+|--------|-------|-------------|
+| 401 | Authentication required | No token provided in header or URL |
+| 401 | Invalid token | Token is malformed or invalid |
+| 401 | Invalid token payload | Token doesn't contain user_id |
+
+**Example:**
+```bash
+# Using Authorization header
+curl -X GET http://localhost:8080/api/connections/gmail \
+  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+
+# Using URL parameter (useful for browser redirects)
+# In browser, navigate to:
+http://localhost:8080/api/connections/gmail?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+```
+
+---
+
 ## AREA (Workflow) Endpoints
 
 ### `POST /api/areas`

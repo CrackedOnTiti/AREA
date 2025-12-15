@@ -349,3 +349,155 @@ Returns information about the server, client, and all available services with th
 ```bash
 curl http://localhost:8080/about.json
 ```
+
+---
+
+## Services Endpoints
+
+### `GET /api/services`
+
+**Description:**
+List all available services with their actions and reactions.
+
+**Authentication:** Required (Bearer token)
+
+**Request Headers:**
+```
+Authorization: Bearer <token>
+```
+
+**Success Response (200 OK):**
+```json
+{
+  "services": [
+    {
+      "name": "string",
+      "display_name": "string",
+      "description": "string",
+      "requires_oauth": boolean,
+      "icon_url": "string | null",
+      "actions": [
+        {
+          "id": integer,
+          "name": "string",
+          "display_name": "string",
+          "description": "string",
+          "config_schema": {
+            "type": "object",
+            "properties": {}
+          }
+        }
+      ],
+      "reactions": [
+        {
+          "id": integer,
+          "name": "string",
+          "display_name": "string",
+          "description": "string",
+          "config_schema": {
+            "type": "object",
+            "properties": {}
+          }
+        }
+      ]
+    }
+  ]
+}
+```
+
+**Response Fields:**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `services` | array | List of all active services |
+| `services[].name` | string | Internal identifier for the service |
+| `services[].display_name` | string | Human-readable service name |
+| `services[].description` | string | Brief description of the service |
+| `services[].requires_oauth` | boolean | Whether OAuth2 authentication is required |
+| `services[].icon_url` | string/null | URL to service icon |
+| `services[].actions` | array | Available action triggers for this service |
+| `services[].actions[].id` | integer | Database ID of the action |
+| `services[].actions[].name` | string | Internal action identifier |
+| `services[].actions[].display_name` | string | Human-readable action name |
+| `services[].actions[].description` | string | Description of when this action triggers |
+| `services[].actions[].config_schema` | object | JSON schema for action configuration |
+| `services[].reactions` | array | Available reactions for this service |
+| `services[].reactions[].id` | integer | Database ID of the reaction |
+| `services[].reactions[].name` | string | Internal reaction identifier |
+| `services[].reactions[].display_name` | string | Human-readable reaction name |
+| `services[].reactions[].description` | string | Description of what this reaction does |
+| `services[].reactions[].config_schema` | object | JSON schema for reaction configuration |
+
+**Example Response:**
+```json
+{
+  "services": [
+    {
+      "name": "timer",
+      "display_name": "Timer",
+      "description": "Time-based triggers and actions",
+      "requires_oauth": false,
+      "icon_url": null,
+      "actions": [
+        {
+          "id": 1,
+          "name": "time_matches",
+          "display_name": "Time Matches",
+          "description": "Triggers when current time matches HH:MM pattern",
+          "config_schema": {
+            "type": "object",
+            "properties": {
+              "time": {
+                "type": "string",
+                "pattern": "^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$",
+                "description": "Time in HH:MM format (e.g., 14:30)"
+              }
+            },
+            "required": ["time"]
+          }
+        }
+      ],
+      "reactions": []
+    },
+    {
+      "name": "gmail",
+      "display_name": "Gmail",
+      "description": "Email detection and monitoring",
+      "requires_oauth": true,
+      "icon_url": null,
+      "actions": [
+        {
+          "id": 3,
+          "name": "email_received_from",
+          "display_name": "Email Received From",
+          "description": "Triggers when an email is received from a specific sender",
+          "config_schema": {
+            "type": "object",
+            "properties": {
+              "sender": {
+                "type": "string",
+                "description": "Email address of the sender"
+              }
+            },
+            "required": ["sender"]
+          }
+        }
+      ],
+      "reactions": []
+    }
+  ]
+}
+```
+
+**Error Responses:**
+
+| Status | Error | Description |
+|--------|-------|-------------|
+| 401 | Authorization token is missing | No Authorization header provided |
+| 401 | Invalid or expired token | Token is invalid or has expired |
+
+**Example:**
+```bash
+curl -X GET http://localhost:8080/api/services \
+  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+```

@@ -615,6 +615,70 @@ http://localhost:8080/api/connections/gmail?token=eyJhbGciOiJIUzI1NiIsInR5cCI6Ik
 
 ---
 
+### `GET /api/connections/gmail/callback`
+
+**Description:**
+Handles the OAuth2 callback from Google after user authorization. This endpoint is called automatically by Google and should not be called directly.
+
+**Authentication:** Not required (callback from Google, uses session data)
+
+**Query Parameters:**
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|---------|
+| `code` | string | Yes | Authorization code from Google |
+| `state` | string | Yes | CSRF protection token |
+
+**Success Response (200 OK):**
+```json
+{
+  "success": true,
+  "message": "Gmail connected successfully",
+  "connection": {
+    "id": 1,
+    "user_id": 1,
+    "service_id": 2,
+    "service_name": "gmail",
+    "service_display_name": "Gmail",
+    "connected_at": "2025-12-15T10:00:00Z",
+    "updated_at": "2025-12-15T10:00:00Z",
+    "token_expires_at": "2025-12-15T11:00:00Z"
+  }
+}
+```
+
+**Response Fields:**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `success` | boolean | Always true on successful connection |
+| `message` | string | Success message |
+| `connection` | object | Connection details |
+| `connection.id` | integer | Connection database ID |
+| `connection.user_id` | integer | User ID |
+| `connection.service_id` | integer | Service ID |
+| `connection.service_name` | string | Internal service name |
+| `connection.service_display_name` | string | Display name of the service |
+| `connection.connected_at` | string | ISO 8601 timestamp of initial connection |
+| `connection.updated_at` | string | ISO 8601 timestamp of last token update |
+| `connection.token_expires_at` | string | ISO 8601 timestamp of when access token expires |
+
+**Error Responses:**
+
+| Status | Error | Description |
+|--------|-------|-------------|
+| 400 | Invalid session | Session expired or user_id not found in session |
+| 404 | Gmail service not found | Gmail service not configured in database |
+| 500 | OAuth failed: <details> | OAuth token exchange failed or other error |
+
+**Example:**
+```bash
+# This endpoint is called automatically by Google after user consent
+# You cannot call it directly - it requires valid OAuth state and code from Google
+```
+
+---
+
 ## AREA (Workflow) Endpoints
 
 ### `POST /api/areas`

@@ -966,3 +966,48 @@ None required
 curl -X PATCH http://localhost:8080/api/areas/1/toggle \
   -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
 ```
+
+---
+
+### `DELETE /api/areas/<area_id>`
+
+**Description:**
+Delete a workflow permanently. Only the workflow owner can delete it.
+
+**Authentication:** Required (Bearer token)
+
+**Request Headers:**
+```
+Authorization: Bearer <token>
+```
+
+**URL Parameters:**
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `area_id` | integer | Yes | ID of the workflow to delete |
+
+**Request Body:**
+None required
+
+**Success Response (200 OK):**
+```json
+{
+  "message": "Workflow deleted successfully"
+}
+```
+
+**Error Responses:**
+
+| Status | Error | Description |
+|--------|-------|-------------|
+| 401 | Authorization token is missing | No Authorization header provided |
+| 401 | Invalid or expired token | Token is invalid or has expired |
+| 403 | Unauthorized access to this workflow | User doesn't own this workflow |
+| 404 | Workflow not found | Workflow with given ID doesn't exist |
+
+**Example:**
+```bash
+curl -X DELETE http://localhost:8080/api/areas/1 \
+  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+```

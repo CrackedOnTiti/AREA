@@ -679,6 +679,45 @@ Handles the OAuth2 callback from Google after user authorization. This endpoint 
 
 ---
 
+### `DELETE /api/connections/gmail`
+
+**Description:**
+Disconnect Gmail service by removing the stored OAuth connection. This revokes the application's access to the user's Gmail account.
+
+**Authentication:** Required (Bearer token)
+
+**Request Headers:**
+```
+Authorization: Bearer <token>
+```
+
+**Request Body:**
+None required
+
+**Success Response (200 OK):**
+```json
+{
+  "message": "Gmail disconnected successfully"
+}
+```
+
+**Error Responses:**
+
+| Status | Error | Description |
+|--------|-------|-------------|
+| 401 | Authorization token is missing | No Authorization header provided |
+| 401 | Invalid or expired token | Token is invalid or has expired |
+| 404 | Gmail service not found | Gmail service not configured in database |
+| 404 | Gmail not connected | User hasn't connected Gmail yet |
+
+**Example:**
+```bash
+curl -X DELETE http://localhost:8080/api/connections/gmail \
+  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+```
+
+---
+
 ## AREA (Workflow) Endpoints
 
 ### `POST /api/areas`

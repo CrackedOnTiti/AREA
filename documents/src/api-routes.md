@@ -501,3 +501,114 @@ Authorization: Bearer <token>
 curl -X GET http://localhost:8080/api/services \
   -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
 ```
+
+---
+
+## AREA (Workflow) Endpoints
+
+### `POST /api/areas`
+
+**Description:**
+Create a new workflow (AREA) that links an Action to a REAction.
+
+**Authentication:** Required (Bearer token)
+
+**Request Headers:**
+```
+Authorization: Bearer <token>
+```
+
+**Request Body:**
+```json
+{
+  "name": "string",
+  "action_id": integer,
+  "reaction_id": integer,
+  "action_config": {
+    "key": "value"
+  },
+  "reaction_config": {
+    "key": "value"
+  },
+  "is_active": boolean
+}
+```
+
+**Request Fields:**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `name` | string | Yes | Name of the workflow |
+| `action_id` | integer | Yes | ID of the action trigger |
+| `reaction_id` | integer | Yes | ID of the reaction to execute |
+| `action_config` | object | Yes | Configuration for the action (varies by action type) |
+| `reaction_config` | object | Yes | Configuration for the reaction (varies by reaction type) |
+| `is_active` | boolean | No | Whether the workflow is active (default: true) |
+
+**Success Response (201 Created):**
+```json
+{
+  "message": "Workflow created successfully",
+  "area": {
+    "id": 1,
+    "user_id": 1,
+    "name": "Daily Email Reminder",
+    "description": null,
+    "action": {
+      "id": 1,
+      "name": "time_matches",
+      "display_name": "Time Matches",
+      "service": "Timer"
+    },
+    "reaction": {
+      "id": 1,
+      "name": "send_email",
+      "display_name": "Send Email",
+      "service": "Email"
+    },
+    "action_config": {
+      "time": "14:00"
+    },
+    "reaction_config": {
+      "to": "user@example.com",
+      "subject": "Daily Reminder",
+      "body": "This is your daily reminder!"
+    },
+    "is_active": true,
+    "last_triggered": null,
+    "created_at": "2025-12-15T10:30:00Z",
+    "updated_at": "2025-12-15T10:30:00Z"
+  }
+}
+```
+
+**Error Responses:**
+
+| Status | Error | Description |
+|--------|-------|-------------|
+| 400 | Missing required field: <field> | Required field not provided |
+| 401 | Authorization token is missing | No Authorization header provided |
+| 401 | Invalid or expired token | Token is invalid or has expired |
+| 404 | Action not found | action_id doesn't exist |
+| 404 | Reaction not found | reaction_id doesn't exist |
+
+**Example:**
+```bash
+curl -X POST http://localhost:8080/api/areas \
+  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Daily Email Reminder",
+    "action_id": 1,
+    "reaction_id": 1,
+    "action_config": {
+      "time": "14:00"
+    },
+    "reaction_config": {
+      "to": "user@example.com",
+      "subject": "Daily Reminder",
+      "body": "This is your daily reminder!"
+    },
+    "is_active": true
+  }'
+```

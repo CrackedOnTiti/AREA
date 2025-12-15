@@ -46,7 +46,7 @@ JWT_SECRET_KEY=your-super-secret-key-here-change-this-in-production
 
 **Generate a secure key:**
 ```bash
-openssl rand -hex 32"
+openssl rand -hex 32
 ```
 
 ---

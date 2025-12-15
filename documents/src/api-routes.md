@@ -777,3 +777,192 @@ Authorization: Bearer <token>
 curl -X GET http://localhost:8080/api/areas/1 \
   -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
 ```
+
+---
+
+### `PUT /api/areas/<area_id>`
+
+**Description:**
+Update an existing workflow. Only the workflow owner can update it.
+
+**Authentication:** Required (Bearer token)
+
+**Request Headers:**
+```
+Authorization: Bearer <token>
+```
+
+**URL Parameters:**
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `area_id` | integer | Yes | ID of the workflow to update |
+
+**Request Body:**
+```json
+{
+  "name": "string",
+  "action_config": {
+    "key": "value"
+  },
+  "reaction_config": {
+    "key": "value"
+  },
+  "is_active": boolean
+}
+```
+
+**Request Fields:**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `name` | string | No | New name for the workflow |
+| `action_config` | object | No | New configuration for the action |
+| `reaction_config` | object | No | New configuration for the reaction |
+| `is_active` | boolean | No | Whether the workflow is active |
+
+**Success Response (200 OK):**
+```json
+{
+  "message": "Workflow updated successfully",
+  "area": {
+    "id": 1,
+    "user_id": 1,
+    "name": "Updated Email Reminder",
+    "description": null,
+    "action": {
+      "id": 1,
+      "name": "time_matches",
+      "display_name": "Time Matches",
+      "service": "Timer"
+    },
+    "reaction": {
+      "id": 1,
+      "name": "send_email",
+      "display_name": "Send Email",
+      "service": "Email"
+    },
+    "action_config": {
+      "time": "15:00"
+    },
+    "reaction_config": {
+      "to": "newemail@example.com",
+      "subject": "Updated Reminder",
+      "body": "This is an updated reminder!"
+    },
+    "is_active": true,
+    "last_triggered": "2025-12-15T14:00:05Z",
+    "created_at": "2025-12-15T10:30:00Z",
+    "updated_at": "2025-12-15T15:45:00Z"
+  }
+}
+```
+
+**Error Responses:**
+
+| Status | Error | Description |
+|--------|-------|-------------|
+| 401 | Authorization token is missing | No Authorization header provided |
+| 401 | Invalid or expired token | Token is invalid or has expired |
+| 403 | Unauthorized access to this workflow | User doesn't own this workflow |
+| 404 | Workflow not found | Workflow with given ID doesn't exist |
+
+**Example:**
+```bash
+curl -X PUT http://localhost:8080/api/areas/1 \
+  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Updated Email Reminder",
+    "action_config": {
+      "time": "15:00"
+    },
+    "reaction_config": {
+      "to": "newemail@example.com",
+      "subject": "Updated Reminder",
+      "body": "This is an updated reminder!"
+    }
+  }'
+```
+
+---
+
+### `PATCH /api/areas/<area_id>/toggle`
+
+**Description:**
+Toggle the active status of a workflow (enable/disable). Only the workflow owner can toggle it.
+
+**Authentication:** Required (Bearer token)
+
+**Request Headers:**
+```
+Authorization: Bearer <token>
+```
+
+**URL Parameters:**
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `area_id` | integer | Yes | ID of the workflow to toggle |
+
+**Request Body:**
+None required
+
+**Success Response (200 OK):**
+```json
+{
+  "message": "Workflow enabled successfully",
+  "area": {
+    "id": 1,
+    "user_id": 1,
+    "name": "Daily Email Reminder",
+    "description": null,
+    "action": {
+      "id": 1,
+      "name": "time_matches",
+      "display_name": "Time Matches",
+      "service": "Timer"
+    },
+    "reaction": {
+      "id": 1,
+      "name": "send_email",
+      "display_name": "Send Email",
+      "service": "Email"
+    },
+    "action_config": {
+      "time": "14:00"
+    },
+    "reaction_config": {
+      "to": "user@example.com",
+      "subject": "Daily Reminder",
+      "body": "This is your daily reminder!"
+    },
+    "is_active": true,
+    "last_triggered": "2025-12-15T14:00:05Z",
+    "created_at": "2025-12-15T10:30:00Z",
+    "updated_at": "2025-12-15T16:00:00Z"
+  }
+}
+```
+
+**Response Fields:**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `message` | string | Success message indicating if workflow was enabled or disabled |
+| `area` | object | Complete updated workflow object with toggled is_active status |
+
+**Error Responses:**
+
+| Status | Error | Description |
+|--------|-------|-------------|
+| 401 | Authorization token is missing | No Authorization header provided |
+| 401 | Invalid or expired token | Token is invalid or has expired |
+| 403 | Unauthorized access to this workflow | User doesn't own this workflow |
+| 404 | Workflow not found | Workflow with given ID doesn't exist |
+
+**Example:**
+```bash
+curl -X PATCH http://localhost:8080/api/areas/1/toggle \
+  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+```

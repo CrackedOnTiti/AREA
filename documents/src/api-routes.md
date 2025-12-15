@@ -504,6 +504,69 @@ curl -X GET http://localhost:8080/api/services \
 
 ---
 
+### `GET /api/connections`
+
+**Description:**
+List all available services that require OAuth and their connection status for the current user.
+
+**Authentication:** Required (Bearer token)
+
+**Request Headers:**
+```
+Authorization: Bearer <token>
+```
+
+**Success Response (200 OK):**
+```json
+{
+  "connections": [
+    {
+      "service_id": 2,
+      "service_name": "gmail",
+      "display_name": "Gmail",
+      "description": "Email detection and monitoring",
+      "is_connected": true,
+      "connected_at": "2025-12-15T10:00:00Z"
+    },
+    {
+      "service_id": 3,
+      "service_name": "google_drive",
+      "display_name": "Google Drive",
+      "description": "Cloud storage integration",
+      "is_connected": false,
+      "connected_at": null
+    }
+  ]
+}
+```
+
+**Response Fields:**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `connections` | array | List of all OAuth-enabled services with connection status |
+| `connections[].service_id` | integer | Database ID of the service |
+| `connections[].service_name` | string | Internal service identifier |
+| `connections[].display_name` | string | Human-readable service name |
+| `connections[].description` | string | Brief service description |
+| `connections[].is_connected` | boolean | Whether user has connected this service |
+| `connections[].connected_at` | string/null | ISO 8601 timestamp of when service was connected, null if not connected |
+
+**Error Responses:**
+
+| Status | Error | Description |
+|--------|-------|-------------|
+| 401 | Authorization token is missing | No Authorization header provided |
+| 401 | Invalid or expired token | Token is invalid or has expired |
+
+**Example:**
+```bash
+curl -X GET http://localhost:8080/api/connections \
+  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+```
+
+---
+
 ## AREA (Workflow) Endpoints
 
 ### `POST /api/areas`

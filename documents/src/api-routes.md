@@ -708,3 +708,72 @@ curl -X GET "http://localhost:8080/api/areas?is_active=true" \
 curl -X GET "http://localhost:8080/api/areas?page=2&per_page=10" \
   -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
 ```
+
+---
+
+### `GET /api/areas/<area_id>`
+
+**Description:**
+Get a specific workflow by its ID.
+
+**Authentication:** Required (Bearer token)
+
+**Request Headers:**
+```
+Authorization: Bearer <token>
+```
+
+**URL Parameters:**
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `area_id` | integer | Yes | ID of the workflow to retrieve |
+
+**Success Response (200 OK):**
+```json
+{
+  "id": 1,
+  "user_id": 1,
+  "name": "Daily Email Reminder",
+  "description": null,
+  "action": {
+    "id": 1,
+    "name": "time_matches",
+    "display_name": "Time Matches",
+    "service": "Timer"
+  },
+  "reaction": {
+    "id": 1,
+    "name": "send_email",
+    "display_name": "Send Email",
+    "service": "Email"
+  },
+  "action_config": {
+    "time": "14:00"
+  },
+  "reaction_config": {
+    "to": "user@example.com",
+    "subject": "Daily Reminder",
+    "body": "This is your daily reminder!"
+  },
+  "is_active": true,
+  "last_triggered": "2025-12-15T14:00:05Z",
+  "created_at": "2025-12-15T10:30:00Z",
+  "updated_at": "2025-12-15T10:30:00Z"
+}
+```
+
+**Error Responses:**
+
+| Status | Error | Description |
+|--------|-------|-------------|
+| 401 | Authorization token is missing | No Authorization header provided |
+| 401 | Invalid or expired token | Token is invalid or has expired |
+| 403 | Unauthorized access to this workflow | User doesn't own this workflow |
+| 404 | Workflow not found | Workflow with given ID doesn't exist |
+
+**Example:**
+```bash
+curl -X GET http://localhost:8080/api/areas/1 \
+  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+```

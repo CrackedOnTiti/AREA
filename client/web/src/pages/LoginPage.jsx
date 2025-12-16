@@ -50,7 +50,7 @@ const LoginPage = () => {
   const validateForm = () => {
     const newErrors = {};
 
-    if (!formData.identifier.trim()) {
+    if (!formData.identifier || !formData.identifier.trim()) {
       newErrors.identifier = 'Username or email is required';
     }
 
@@ -77,15 +77,16 @@ const LoginPage = () => {
     setLoading(true);
 
     try {
-      // Determine if identifier is email or username
-      const isEmail = formData.identifier.includes('@');
-      const credentials = {
-        [isEmail ? 'email' : 'username']: formData.identifier,
-        password: formData.password,
-      };
+      // Ensure we're passing strings
+      const usernameOrEmail = String(formData.identifier).trim();
+      const userPassword = String(formData.password);
 
+      console.log('Attempting login with:', usernameOrEmail); // Debug log
+      
       // Call API
-      const response = await loginService(credentials);
+      const response = await loginService(usernameOrEmail, userPassword);
+
+      console.log('Login successful:', response); // Debug log
 
       // Store token and user in context + localStorage
       login(response.token, response.user);

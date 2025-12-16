@@ -1,35 +1,35 @@
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
 
 /**
- * Récupère le token JWT depuis localStorage
+ * Get the token JWT from localStorage
  */
 export const getToken = () => {
   return localStorage.getItem('token');
 };
 
 /**
- * Stocke le token JWT dans localStorage
+ * Store the token JWT in localStorage
  */
 export const setToken = (token) => {
   localStorage.setItem('token', token);
 };
 
 /**
- * Supprime le token JWT de localStorage
+ * Remove the token JWT from localStorage
  */
 export const removeToken = () => {
   localStorage.removeItem('token');
 };
 
 /**
- * Vérifie si l'utilisateur est authentifié
+ * Check if the user is authenticated
  */
 export const isAuthenticated = () => {
   return !!getToken();
 };
 
 /**
- * Récupère l'utilisateur stocké dans localStorage
+ * Get the user stored in localStorage
  */
 export const getStoredUser = () => {
   const userJson = localStorage.getItem('user');
@@ -37,21 +37,21 @@ export const getStoredUser = () => {
 };
 
 /**
- * Stocke l'utilisateur dans localStorage
+ * Store the user in localStorage
  */
 export const setStoredUser = (user) => {
   localStorage.setItem('user', JSON.stringify(user));
 };
 
 /**
- * Supprime l'utilisateur de localStorage
+ * Remove the user from localStorage
  */
 export const removeStoredUser = () => {
   localStorage.removeItem('user');
 };
 
 /**
- * Inscription d'un nouvel utilisateur
+ * Register a new user
  */
 export const register = async (username, email, password) => {
   try {
@@ -68,7 +68,7 @@ export const register = async (username, email, password) => {
 
     const data = await response.json();
     
-    // Stocker le token et l'utilisateur
+    // Store the token and user
     if (data.token) {
       setToken(data.token);
     }
@@ -84,13 +84,25 @@ export const register = async (username, email, password) => {
 };
 
 /**
- * Connexion d'un utilisateur
+ * Login a user
+ * @param {string} usernameOrEmail - Username or email (as a STRING)
+ * @param {string} password - Password
  */
 export const login = async (usernameOrEmail, password) => {
   try {
-    const body = usernameOrEmail.includes('@')
+    // Make sure usernameOrEmail is a string
+    if (typeof usernameOrEmail !== 'string') {
+      console.error('usernameOrEmail is not a string:', usernameOrEmail);
+      throw new Error('Invalid login credentials format');
+    }
+
+    // Determine if the identifier is an email or username
+    const isEmail = usernameOrEmail.includes('@');
+    const body = isEmail
       ? { email: usernameOrEmail, password }
       : { username: usernameOrEmail, password };
+
+    console.log('Login request body:', body); // Debug log
 
     const response = await fetch(`${API_URL}/api/auth/login`, {
       method: 'POST',
@@ -105,7 +117,7 @@ export const login = async (usernameOrEmail, password) => {
 
     const data = await response.json();
     
-    // Stocker le token et l'utilisateur
+    // Store the token and user
     if (data.token) {
       setToken(data.token);
     }
@@ -121,7 +133,7 @@ export const login = async (usernameOrEmail, password) => {
 };
 
 /**
- * Récupère l'utilisateur actuel depuis l'API
+ * Get the current user from the API
  */
 export const getCurrentUser = async () => {
   const token = getToken();
@@ -144,7 +156,7 @@ export const getCurrentUser = async () => {
 
     const data = await response.json();
     
-    // Mettre à jour l'utilisateur stocké
+    // Update the stored user
     if (data.user) {
       setStoredUser(data.user);
     }
@@ -152,7 +164,7 @@ export const getCurrentUser = async () => {
     return data;
   } catch (error) {
     console.error('Get current user error:', error);
-    // Si le token est invalide, nettoyer le localStorage
+    // If the token is invalid, clean localStorage
     removeToken();
     removeStoredUser();
     throw error;
@@ -160,7 +172,7 @@ export const getCurrentUser = async () => {
 };
 
 /**
- * Déconnexion de l'utilisateur
+ * Logout the user
  */
 export const logout = () => {
   removeToken();
@@ -168,19 +180,19 @@ export const logout = () => {
 };
 
 /**
- * Connexion avec Google (à implémenter)
+ * Login with Google (to be implemented)
  */
 export const loginWithGoogle = async () => {
-  // TODO: Implémenter OAuth2 Google
+  // TODO: Implement OAuth2 Google
   console.warn('Google OAuth not implemented yet');
   throw new Error('Google OAuth not implemented yet');
 };
 
 /**
- * Connexion avec Facebook (à implémenter)
+ * Login with Facebook (to be implemented)
  */
 export const loginWithFacebook = async () => {
-  // TODO: Implémenter OAuth2 Facebook
+  // TODO: Implement OAuth2 Facebook
   console.warn('Facebook OAuth not implemented yet');
   throw new Error('Facebook OAuth not implemented yet');
 };

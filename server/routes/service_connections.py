@@ -76,8 +76,10 @@ def gmail_callback():
         # Exchange authorization code for token
         token = oauth.google.authorize_access_token()
 
-        # Get Gmail service ID
+        # Get Gmail and Drive service IDs (they share the same OAuth token)
         gmail_service = Service.query.filter_by(name='gmail').first()
+        drive_service = Service.query.filter_by(name='drive').first()
+
         if not gmail_service:
             return jsonify({'error': 'Gmail service not found'}), 404
 
@@ -85,36 +87,63 @@ def gmail_callback():
         expires_in = token.get('expires_in', 3600)
         expires_at = datetime.now(timezone.utc) + timedelta(seconds=expires_in)
 
-        # Check if connection already exists
-        connection = UserServiceConnection.query.filter_by(
+        # Create/update connection for Gmail
+        gmail_connection = UserServiceConnection.query.filter_by(
             user_id=user_id,
             service_id=gmail_service.id
         ).first()
 
-        if connection:
+        if gmail_connection:
             # Update existing connection
-            connection.access_token = token['access_token']
-            connection.refresh_token = token.get('refresh_token', connection.refresh_token)
-            connection.token_expires_at = expires_at
-            connection.updated_at = datetime.now(timezone.utc)
+            gmail_connection.access_token = token['access_token']
+            gmail_connection.refresh_token = token.get('refresh_token', gmail_connection.refresh_token)
+            gmail_connection.token_expires_at = expires_at
+            gmail_connection.updated_at = datetime.now(timezone.utc)
         else:
             # Create new connection
-            connection = UserServiceConnection(
+            gmail_connection = UserServiceConnection(
                 user_id=user_id,
                 service_id=gmail_service.id,
                 access_token=token['access_token'],
                 refresh_token=token.get('refresh_token'),
                 token_expires_at=expires_at
             )
-            db.session.add(connection)
+            db.session.add(gmail_connection)
+
+        # Create/update connection for Drive (same token)
+        if drive_service:
+            drive_connection = UserServiceConnection.query.filter_by(
+                user_id=user_id,
+                service_id=drive_service.id
+            ).first()
+
+            if drive_connection:
+                # Update existing connection
+                drive_connection.access_token = token['access_token']
+                drive_connection.refresh_token = token.get('refresh_token', drive_connection.refresh_token)
+                drive_connection.token_expires_at = expires_at
+                drive_connection.updated_at = datetime.now(timezone.utc)
+            else:
+                # Create new connection
+                drive_connection = UserServiceConnection(
+                    user_id=user_id,
+                    service_id=drive_service.id,
+                    access_token=token['access_token'],
+                    refresh_token=token.get('refresh_token'),
+                    token_expires_at=expires_at
+                )
+                db.session.add(drive_connection)
 
         db.session.commit()
 
         # Redirect to frontend success page or return success response
         return jsonify({
             'success': True,
-            'message': 'Gmail connected successfully',
-            'connection': connection.to_dict()
+            'message': 'Gmail and Drive connected successfully',
+            'connections': {
+                'gmail': gmail_connection.to_dict(),
+                'drive': drive_connection.to_dict() if drive_service else None
+            }
         }), 200
 
     except Exception as e:

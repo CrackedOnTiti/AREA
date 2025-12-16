@@ -34,7 +34,7 @@ oauth.register(
     client_secret=Config.GOOGLE_CLIENT_SECRET,
     server_metadata_url=Config.GOOGLE_DISCOVERY_URL,
     client_kwargs={
-        'scope': 'openid email profile https://www.googleapis.com/auth/gmail.readonly'
+        'scope': 'openid email profile https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/drive'
     } # Scope basically specifically asks for something during handshake
 )
 

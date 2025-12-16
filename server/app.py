@@ -38,6 +38,17 @@ oauth.register(
     } # Scope basically specifically asks for something during handshake
 )
 
+oauth.register(
+    name='facebook',
+    client_id=Config.FACEBOOK_CLIENT_ID,
+    client_secret=Config.FACEBOOK_CLIENT_SECRET,
+    authorize_url='https://www.facebook.com/v18.0/dialog/oauth',
+    access_token_url='https://graph.facebook.com/v18.0/oauth/access_token',
+    client_kwargs={
+        'scope': 'email public_profile'
+    }
+)
+
 # create tables (basically mkdir -p)
 with app.app_context():
     db.create_all()

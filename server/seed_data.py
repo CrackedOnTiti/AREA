@@ -274,6 +274,136 @@ def seed_gmail_service():
     return gmail
 
 
+def seed_drive_service():
+    """Seed Google Drive service with file actions and reactions"""
+    # Check if already exists
+    drive = Service.query.filter_by(name='drive').first()
+    if drive:
+        print("  Drive service already exists, skipping...")
+        return drive
+
+    # Create Drive service
+    drive = Service(
+        name='drive',
+        display_name='Google Drive',
+        description='Cloud storage and file management',
+        requires_oauth=True,
+        is_active=True
+    )
+    db.session.add(drive)
+    db.session.flush()
+
+    # Action: new_file_in_folder
+    action1 = Action(
+        service_id=drive.id,
+        name='new_file_in_folder',
+        display_name='New File in Folder',
+        description='Triggers when a new file is added to a specific folder',
+        config_schema={
+            'type': 'object',
+            'properties': {
+                'folder_name': {
+                    'type': 'string',
+                    'description': 'Name of the folder to monitor'
+                }
+            },
+            'required': ['folder_name']
+        }
+    )
+    db.session.add(action1)
+
+    # Action: new_file_uploaded
+    action2 = Action(
+        service_id=drive.id,
+        name='new_file_uploaded',
+        display_name='New File Uploaded',
+        description='Triggers when any new file is uploaded to Drive',
+        config_schema={
+            'type': 'object',
+            'properties': {}
+        }
+    )
+    db.session.add(action2)
+
+    # Reaction: create_file
+    reaction1 = Reaction(
+        service_id=drive.id,
+        name='create_file',
+        display_name='Create a file',
+        description='Creates a new text file in Google Drive',
+        config_schema={
+            'type': 'object',
+            'properties': {
+                'file_name': {
+                    'type': 'string',
+                    'description': 'Name of the file to create'
+                },
+                'content': {
+                    'type': 'string',
+                    'description': 'Content of the file'
+                },
+                'folder_name': {
+                    'type': 'string',
+                    'description': 'Optional folder name (leave empty for root)'
+                }
+            },
+            'required': ['file_name', 'content']
+        }
+    )
+    db.session.add(reaction1)
+
+    # Reaction: create_folder
+    reaction2 = Reaction(
+        service_id=drive.id,
+        name='create_folder',
+        display_name='Create a folder',
+        description='Creates a new folder in Google Drive',
+        config_schema={
+            'type': 'object',
+            'properties': {
+                'folder_name': {
+                    'type': 'string',
+                    'description': 'Name of the folder to create'
+                }
+            },
+            'required': ['folder_name']
+        }
+    )
+    db.session.add(reaction2)
+
+    # Reaction: share_file
+    reaction3 = Reaction(
+        service_id=drive.id,
+        name='share_file',
+        display_name='Share a file',
+        description='Shares a file with a user by email',
+        config_schema={
+            'type': 'object',
+            'properties': {
+                'file_name': {
+                    'type': 'string',
+                    'description': 'Name of the file to share'
+                },
+                'email': {
+                    'type': 'string',
+                    'format': 'email',
+                    'description': 'Email address to share with'
+                },
+                'role': {
+                    'type': 'string',
+                    'enum': ['reader', 'writer'],
+                    'description': 'Permission level'
+                }
+            },
+            'required': ['file_name', 'email', 'role']
+        }
+    )
+    db.session.add(reaction3)
+
+    print(f"{GREEN}      Created Drive service with 2 actions and 3 reactions{RESET}")
+    return drive
+
+
 def seed_all():
     """Seed all services"""
     print(f"\n{CYAN}=== Starting database seeding ==={RESET}\n")
@@ -283,6 +413,7 @@ def seed_all():
     seed_email_service()
     seed_system_service()
     seed_gmail_service()
+    seed_drive_service()
 
     db.session.commit()
 

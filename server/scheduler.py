@@ -4,6 +4,7 @@ from apscheduler.triggers.interval import IntervalTrigger
 from database.models import db, UserArea, WorkflowLog, Action, Reaction, UserServiceConnection, Service
 from utils.email_sender import send_email
 from utils.gmail_client import create_gmail_service, fetch_new_emails, check_sender_match, check_subject_contains
+from utils.drive_client import create_drive_service, fetch_recent_files, get_folder_id_by_name, create_file, create_folder, share_file
 from config import Config
 
 scheduler = None
@@ -94,6 +95,72 @@ def check_gmail_email_received(area: UserArea) -> dict:
     return {'triggered': False}
 
 
+def check_drive_new_file(area: UserArea) -> dict:
+    """Check Google Drive for new files"""
+    # Get user's Drive connection
+    action = Action.query.get(area.action_id)
+    drive_service = Service.query.filter_by(name='drive').first()
+
+    if not drive_service:
+        return {'triggered': False, 'error': 'Drive service not found'}
+
+    connection = UserServiceConnection.query.filter_by(
+        user_id=area.user_id,
+        service_id=drive_service.id
+    ).first()
+
+    if not connection:
+        return {'triggered': False, 'error': 'Drive not connected for this user'}
+
+    # Create Drive API service
+    drive_api = create_drive_service(connection.access_token, connection.refresh_token)
+    if not drive_api:
+        return {'triggered': False, 'error': 'Failed to create Drive service'}
+
+    # Calculate "since" timestamp (check files from last 5 minutes)
+    since = datetime.now(timezone.utc) - timedelta(minutes=5)
+    since_timestamp = int(since.timestamp())
+
+    # Check action type
+    if action.name == 'new_file_in_folder':
+        folder_name = area.action_config.get('folder_name')
+        if not folder_name:
+            return {'triggered': False, 'error': 'No folder_name specified'}
+
+        # Get folder ID
+        folder_id = get_folder_id_by_name(drive_api, folder_name)
+        if not folder_id:
+            return {'triggered': False, 'error': f'Folder "{folder_name}" not found'}
+
+        # Fetch recent files in folder
+        files = fetch_recent_files(drive_api, folder_id=folder_id, since_timestamp=since_timestamp)
+
+    elif action.name == 'new_file_uploaded':
+        # Fetch any recent files
+        files = fetch_recent_files(drive_api, since_timestamp=since_timestamp)
+
+    else:
+        return {'triggered': False, 'error': f'Unknown action: {action.name}'}
+
+    if not files:
+        return {'triggered': False}
+
+    # Check each file
+    for file in files:
+        # Check if we've already processed this file
+        existing_log = WorkflowLog.query.filter_by(
+            area_id=area.id,
+            message=f"New file: {file['name']}"
+        ).first()
+
+        if existing_log:
+            continue
+
+        return {'triggered': True, 'file_data': file}
+
+    return {'triggered': False}
+
+
 def execute_send_email(area: UserArea) -> dict:
     """Execute the send_email reaction"""
     config = area.reaction_config
@@ -112,6 +179,139 @@ def execute_send_email(area: UserArea) -> dict:
     return result
 
 
+def execute_drive_create_file(area: UserArea) -> dict:
+    """Execute the create_file reaction for Google Drive"""
+    # Get user's Drive connection
+    drive_service = Service.query.filter_by(name='drive').first()
+    if not drive_service:
+        return {'success': False, 'error': 'Drive service not found'}
+
+    connection = UserServiceConnection.query.filter_by(
+        user_id=area.user_id,
+        service_id=drive_service.id
+    ).first()
+
+    if not connection:
+        return {'success': False, 'error': 'Drive not connected'}
+
+    # Create Drive API service
+    drive_api = create_drive_service(connection.access_token, connection.refresh_token)
+    if not drive_api:
+        return {'success': False, 'error': 'Failed to create Drive service'}
+
+    # Get config
+    config = area.reaction_config
+    file_name = config.get('file_name')
+    content = config.get('content', '')
+    folder_name = config.get('folder_name')
+
+    if not file_name:
+        return {'success': False, 'error': 'No file_name specified'}
+
+    # Get folder ID if specified
+    folder_id = None
+    if folder_name:
+        folder_id = get_folder_id_by_name(drive_api, folder_name)
+        if not folder_id:
+            return {'success': False, 'error': f'Folder "{folder_name}" not found'}
+
+    # Create file
+    result = create_file(drive_api, file_name, content, folder_id=folder_id)
+    if result.get('success'):
+        result['message'] = f"Created file: {file_name}"
+
+    return result
+
+
+def execute_drive_create_folder(area: UserArea) -> dict:
+    """Execute the create_folder reaction for Google Drive"""
+    # Get user's Drive connection
+    drive_service = Service.query.filter_by(name='drive').first()
+    if not drive_service:
+        return {'success': False, 'error': 'Drive service not found'}
+
+    connection = UserServiceConnection.query.filter_by(
+        user_id=area.user_id,
+        service_id=drive_service.id
+    ).first()
+
+    if not connection:
+        return {'success': False, 'error': 'Drive not connected'}
+
+    # Create Drive API service
+    drive_api = create_drive_service(connection.access_token, connection.refresh_token)
+    if not drive_api:
+        return {'success': False, 'error': 'Failed to create Drive service'}
+
+    # Get config
+    config = area.reaction_config
+    folder_name = config.get('folder_name')
+
+    if not folder_name:
+        return {'success': False, 'error': 'No folder_name specified'}
+
+    # Create folder
+    result = create_folder(drive_api, folder_name)
+    if result.get('success'):
+        result['message'] = f"Created folder: {folder_name}"
+
+    return result
+
+
+def execute_drive_share_file(area: UserArea) -> dict:
+    """Execute the share_file reaction for Google Drive"""
+    # Get user's Drive connection
+    drive_service = Service.query.filter_by(name='drive').first()
+    if not drive_service:
+        return {'success': False, 'error': 'Drive service not found'}
+
+    connection = UserServiceConnection.query.filter_by(
+        user_id=area.user_id,
+        service_id=drive_service.id
+    ).first()
+
+    if not connection:
+        return {'success': False, 'error': 'Drive not connected'}
+
+    # Create Drive API service
+    drive_api = create_drive_service(connection.access_token, connection.refresh_token)
+    if not drive_api:
+        return {'success': False, 'error': 'Failed to create Drive service'}
+
+    # Get config
+    config = area.reaction_config
+    file_name = config.get('file_name')
+    email = config.get('email')
+    role = config.get('role', 'reader')
+
+    if not file_name or not email:
+        return {'success': False, 'error': 'Missing file_name or email'}
+
+    # Find file by name
+    try:
+        results = drive_api.files().list(
+            q=f"name='{file_name}' and trashed=false",
+            pageSize=1,
+            fields='files(id, name)'
+        ).execute()
+
+        files = results.get('files', [])
+        if not files:
+            return {'success': False, 'error': f'File "{file_name}" not found'}
+
+        file_id = files[0]['id']
+
+        # Share file
+        result = share_file(drive_api, file_id, email, role)
+        if result.get('success'):
+            result['message'] = f"Shared {file_name} with {email}"
+
+        return result
+
+    except Exception as e:
+        return {'success': False, 'error': str(e)}
+
+
 def execute_reaction(area: UserArea) -> dict:
     """Execute the appropriate reaction based on the reaction type"""
     reaction = Reaction.query.get(area.reaction_id)
@@ -125,6 +325,12 @@ def execute_reaction(area: UserArea) -> dict:
     # Route to appropriate executor based on reaction name
     if reaction.name == 'send_email':
         return execute_send_email(area)
+    elif reaction.name == 'create_file':
+        return execute_drive_create_file(area)
+    elif reaction.name == 'create_folder':
+        return execute_drive_create_folder(area)
+    elif reaction.name == 'share_file':
+        return execute_drive_share_file(area)
     else:
         return {
             'success': False,
@@ -162,6 +368,13 @@ def check_and_execute_workflows(app):
                         if should_trigger:
                             email_data = result.get('email_data')
                             trigger_metadata = f"Email from {email_data['sender']}: {email_data['subject']}"
+
+                    elif action.name in ['new_file_in_folder', 'new_file_uploaded']:
+                        result = check_drive_new_file(area)
+                        should_trigger = result.get('triggered', False)
+                        if should_trigger:
+                            file_data = result.get('file_data')
+                            trigger_metadata = f"New file: {file_data['name']}"
 
                     if should_trigger:
                         # Execute the reaction

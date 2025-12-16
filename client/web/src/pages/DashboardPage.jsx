@@ -75,7 +75,23 @@ const DashboardPage = () => {
               </div>
               <div className="bg-primary-100 rounded-full p-3">
                 <svg className="w-8 h-8 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
- 
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          {/* Active AREAs */}
+          <div className="bg-white rounded-lg shadow p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-gray-500 text-sm font-medium">Active AREAs</p>
+                <p className="text-3xl font-bold text-green-600 mt-2">
+                  {stats.activeAreas}
+                </p>
+              </div>
+              <div className="bg-green-100 rounded-full p-3">
+                <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
   );
 };
 

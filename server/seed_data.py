@@ -404,6 +404,72 @@ def seed_drive_service():
     return drive
 
 
+def seed_facebook_service():
+    """Seed Facebook service with post actions and reactions"""
+    # Check if already exists
+    facebook = Service.query.filter_by(name='facebook').first()
+    if facebook:
+        print("  Facebook service already exists, skipping...")
+        return facebook
+
+    # Create Facebook service
+    facebook = Service(
+        name='facebook',
+        display_name='Facebook',
+        description='Social media posting and monitoring',
+        requires_oauth=True,
+        is_active=True
+    )
+    db.session.add(facebook)
+    db.session.flush()
+
+    # Action: new_post_on_page
+    action1 = Action(
+        service_id=facebook.id,
+        name='new_post_on_page',
+        display_name='New Post on Page',
+        description='Triggers when a new post is created on your Facebook page',
+        config_schema={
+            'type': 'object',
+            'properties': {
+                'page_id': {
+                    'type': 'string',
+                    'description': 'Facebook Page ID to monitor'
+                }
+            },
+            'required': ['page_id']
+        }
+    )
+    db.session.add(action1)
+
+    # Reaction: create_page_post
+    reaction1 = Reaction(
+        service_id=facebook.id,
+        name='create_page_post',
+        display_name='Create Page Post',
+        description='Creates a new post on your Facebook page',
+        config_schema={
+            'type': 'object',
+            'properties': {
+                'page_id': {
+                    'type': 'string',
+                    'description': 'Facebook Page ID to post to'
+                },
+                'message': {
+                    'type': 'string',
+                    'maxLength': 5000,
+                    'description': 'Post content/message'
+                }
+            },
+            'required': ['page_id', 'message']
+        }
+    )
+    db.session.add(reaction1)
+
+    print(f"{GREEN}      Created Facebook service with 1 action and 1 reaction{RESET}")
+    return facebook
+
+
 def seed_all():
     """Seed all services"""
     print(f"\n{CYAN}=== Starting database seeding ==={RESET}\n")
@@ -414,6 +480,7 @@ def seed_all():
     seed_system_service()
     seed_gmail_service()
     seed_drive_service()
+    seed_facebook_service()
 
     db.session.commit()
 

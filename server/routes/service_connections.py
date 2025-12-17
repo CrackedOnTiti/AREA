@@ -172,3 +172,118 @@ def disconnect_gmail(current_user):
     db.session.commit()
 
     return jsonify({'message': 'Gmail disconnected successfully'}), 200
+
+
+@connections_bp.route('/facebook', methods=['GET', 'POST'])
+def connect_facebook():
+    """Initiate Facebook OAuth flow for service connection"""
+    from app import oauth
+    from utils.auth_utils import decode_token
+
+    # Try to get token from Authorization header or URL param
+    token = request.headers.get('Authorization', '').replace('Bearer ', '')
+    if not token:
+        token = request.args.get('token')
+
+    if not token:
+        return jsonify({'error': 'Authentication required'}), 401
+
+    # Decode token to get user
+    payload = decode_token(token)
+    if not payload:
+        return jsonify({'error': 'Invalid token'}), 401
+
+    user_id = payload.get('user_id')
+    if not user_id:
+        return jsonify({'error': 'Invalid token payload'}), 401
+
+    # Store user_id in session for callback
+    session['connecting_user_id'] = user_id
+
+    # Redirect to Facebook OAuth with user_posts scope
+    redirect_uri = url_for('service_connections.facebook_callback', _external=True)
+    return oauth.facebook.authorize_redirect(redirect_uri, scope='email public_profile user_posts')
+
+
+@connections_bp.route('/facebook/callback', methods=['GET'])
+def facebook_callback():
+    """Handle Facebook OAuth callback for service connection"""
+    from app import oauth
+
+    # Get user_id from session
+    user_id = session.pop('connecting_user_id', None)
+    if not user_id:
+        return jsonify({'error': 'Invalid session'}), 400
+
+    try:
+        # Exchange authorization code for token
+        token = oauth.facebook.authorize_access_token()
+
+        # Get Facebook service
+        facebook_service = Service.query.filter_by(name='facebook').first()
+
+        if not facebook_service:
+            return jsonify({'error': 'Facebook service not found'}), 404
+
+        # Facebook tokens typically don't expire quickly, but we'll set a default
+        # In production, you'd want to handle long-lived tokens properly
+        expires_in = token.get('expires_in', 5183999)  # ~60 days default
+        expires_at = datetime.now(timezone.utc) + timedelta(seconds=expires_in)
+
+        # Create/update connection
+        connection = UserServiceConnection.query.filter_by(
+            user_id=user_id,
+            service_id=facebook_service.id
+        ).first()
+
+        if connection:
+            # Update existing connection
+            connection.access_token = token['access_token']
+            connection.token_expires_at = expires_at
+            connection.updated_at = datetime.now(timezone.utc)
+        else:
+            # Create new connection
+            connection = UserServiceConnection(
+                user_id=user_id,
+                service_id=facebook_service.id,
+                access_token=token['access_token'],
+                refresh_token=None,  # Facebook doesn't use refresh tokens the same way
+                token_expires_at=expires_at
+            )
+            db.session.add(connection)
+
+        db.session.commit()
+
+        # Redirect to frontend success page or return success response
+        return jsonify({
+            'success': True,
+            'message': 'Facebook connected successfully',
+            'connection': connection.to_dict()
+        }), 200
+
+    except Exception as e:
+        return jsonify({'error': f'OAuth failed: {str(e)}'}), 500
+
+
+@connections_bp.route('/facebook', methods=['DELETE'])
+@require_auth
+def disconnect_facebook(current_user):
+    """Disconnect Facebook service"""
+    # Get Facebook service ID
+    facebook_service = Service.query.filter_by(name='facebook').first()
+    if not facebook_service:
+        return jsonify({'error': 'Facebook service not found'}), 404
+
+    # Find and delete connection
+    connection = UserServiceConnection.query.filter_by(
+        user_id=current_user.id,
+        service_id=facebook_service.id
+    ).first()
+
+    if not connection:
+        return jsonify({'error': 'Facebook not connected'}), 404
+
+    db.session.delete(connection)
+    db.session.commit()
+
+    return jsonify({'message': 'Facebook disconnected successfully'}), 200

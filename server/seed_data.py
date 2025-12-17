@@ -405,7 +405,7 @@ def seed_drive_service():
 
 
 def seed_facebook_service():
-    """Seed Facebook service with post actions and reactions"""
+    """Seed Facebook service with post monitoring actions"""
     # Check if already exists
     facebook = Service.query.filter_by(name='facebook').first()
     if facebook:
@@ -416,57 +416,46 @@ def seed_facebook_service():
     facebook = Service(
         name='facebook',
         display_name='Facebook',
-        description='Social media posting and monitoring',
+        description='Personal timeline post monitoring',
         requires_oauth=True,
         is_active=True
     )
     db.session.add(facebook)
     db.session.flush()
 
-    # Action: new_post_on_page
+    # Action: new_post_created
     action1 = Action(
         service_id=facebook.id,
-        name='new_post_on_page',
-        display_name='New Post on Page',
-        description='Triggers when a new post is created on your Facebook page',
+        name='new_post_created',
+        display_name='New Post Created',
+        description='Triggers when you create a new post on your Facebook timeline',
         config_schema={
             'type': 'object',
-            'properties': {
-                'page_id': {
-                    'type': 'string',
-                    'description': 'Facebook Page ID to monitor'
-                }
-            },
-            'required': ['page_id']
+            'properties': {}
         }
     )
     db.session.add(action1)
 
-    # Reaction: create_page_post
-    reaction1 = Reaction(
+    # Action: post_contains_keyword
+    action2 = Action(
         service_id=facebook.id,
-        name='create_page_post',
-        display_name='Create Page Post',
-        description='Creates a new post on your Facebook page',
+        name='post_contains_keyword',
+        display_name='Post Contains Keyword',
+        description='Triggers when your Facebook post contains a specific keyword',
         config_schema={
             'type': 'object',
             'properties': {
-                'page_id': {
+                'keyword': {
                     'type': 'string',
-                    'description': 'Facebook Page ID to post to'
-                },
-                'message': {
-                    'type': 'string',
-                    'maxLength': 5000,
-                    'description': 'Post content/message'
+                    'description': 'Keyword to search for in post'
                 }
             },
-            'required': ['page_id', 'message']
+            'required': ['keyword']
         }
     )
-    db.session.add(reaction1)
+    db.session.add(action2)
 
-    print(f"{GREEN}      Created Facebook service with 1 action and 1 reaction{RESET}")
+    print(f"{GREEN}      Created Facebook service with 2 actions{RESET}")
     return facebook
 
 

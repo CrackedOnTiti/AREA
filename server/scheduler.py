@@ -5,6 +5,7 @@ from database.models import db, UserArea, WorkflowLog, Action, Reaction, UserSer
 from utils.email_sender import send_email
 from utils.gmail_client import create_gmail_service, fetch_new_emails, check_sender_match, check_subject_contains
 from utils.drive_client import create_drive_service, fetch_recent_files, get_folder_id_by_name, create_file, create_folder, share_file
+from utils.facebook_client import fetch_user_posts, check_post_contains_keyword
 from config import Config
 
 scheduler = None
@@ -157,6 +158,56 @@ def check_drive_new_file(area: UserArea) -> dict:
             continue
 
         return {'triggered': True, 'file_data': file}
+
+    return {'triggered': False}
+
+
+def check_facebook_new_post(area: UserArea) -> dict:
+    """Check Facebook for new posts"""
+    # Get user's Facebook connection
+    action = Action.query.get(area.action_id)
+    facebook_service = Service.query.filter_by(name='facebook').first()
+
+    if not facebook_service:
+        return {'triggered': False, 'error': 'Facebook service not found'}
+
+    connection = UserServiceConnection.query.filter_by(
+        user_id=area.user_id,
+        service_id=facebook_service.id
+    ).first()
+
+    if not connection:
+        return {'triggered': False, 'error': 'Facebook not connected for this user'}
+
+    # Calculate "since" timestamp (check posts from last 5 minutes)
+    since = datetime.now(timezone.utc) - timedelta(minutes=5)
+    since_timestamp = int(since.timestamp())
+
+    # Fetch recent posts
+    posts = fetch_user_posts(connection.access_token, since_timestamp=since_timestamp, limit=10)
+
+    if not posts:
+        return {'triggered': False}
+
+    # Check each post against action criteria
+    for post in posts:
+        # Check if we've already processed this post
+        existing_log = WorkflowLog.query.filter_by(
+            area_id=area.id,
+            message=f"Facebook post: {post['message'][:50]}"
+        ).first()
+
+        if existing_log:
+            continue  # Already processed
+
+        # Check action type
+        if action.name == 'new_post_created':
+            return {'triggered': True, 'post_data': post}
+
+        elif action.name == 'post_contains_keyword':
+            keyword = area.action_config.get('keyword')
+            if keyword and check_post_contains_keyword(post, keyword):
+                return {'triggered': True, 'post_data': post}
 
     return {'triggered': False}
 
@@ -375,6 +426,14 @@ def check_and_execute_workflows(app):
                         if should_trigger:
                             file_data = result.get('file_data')
                             trigger_metadata = f"New file: {file_data['name']}"
+
+                    elif action.name in ['new_post_created', 'post_contains_keyword']:
+                        result = check_facebook_new_post(area)
+                        should_trigger = result.get('triggered', False)
+                        if should_trigger:
+                            post_data = result.get('post_data')
+                            message_preview = post_data['message'][:50] if post_data['message'] else 'No message'
+                            trigger_metadata = f"Facebook post: {message_preview}"
 
                     if should_trigger:
                         # Execute the reaction

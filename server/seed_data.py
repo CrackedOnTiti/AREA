@@ -459,6 +459,115 @@ def seed_facebook_service():
     return facebook
 
 
+def seed_github_service():
+    """Seed GitHub service with repository monitoring"""
+    # Check if already exists
+    github = Service.query.filter_by(name='github').first()
+    if github:
+        print("  GitHub service already exists, skipping...")
+        return github
+
+    # Create GitHub service
+    github = Service(
+        name='github',
+        display_name='GitHub',
+        description='Repository monitoring and automation',
+        requires_oauth=True,
+        is_active=True
+    )
+    db.session.add(github)
+    db.session.flush()
+
+    # Action: new_star_on_repo
+    action1 = Action(
+        service_id=github.id,
+        name='new_star_on_repo',
+        display_name='New Star on Repository',
+        description='Triggers when someone stars your repository',
+        config_schema={
+            'type': 'object',
+            'properties': {
+                'repo_name': {
+                    'type': 'string',
+                    'description': 'Repository name (e.g., username/repo)'
+                }
+            },
+            'required': ['repo_name']
+        }
+    )
+    db.session.add(action1)
+
+    # Action: new_issue_created
+    action2 = Action(
+        service_id=github.id,
+        name='new_issue_created',
+        display_name='New Issue Created',
+        description='Triggers when a new issue is created in your repository',
+        config_schema={
+            'type': 'object',
+            'properties': {
+                'repo_name': {
+                    'type': 'string',
+                    'description': 'Repository name (e.g., username/repo)'
+                }
+            },
+            'required': ['repo_name']
+        }
+    )
+    db.session.add(action2)
+
+    # Action: new_pr_opened
+    action3 = Action(
+        service_id=github.id,
+        name='new_pr_opened',
+        display_name='New Pull Request Opened',
+        description='Triggers when a new PR is opened in your repository',
+        config_schema={
+            'type': 'object',
+            'properties': {
+                'repo_name': {
+                    'type': 'string',
+                    'description': 'Repository name (e.g., username/repo)'
+                }
+            },
+            'required': ['repo_name']
+        }
+    )
+    db.session.add(action3)
+
+    # Reaction: create_issue
+    reaction1 = Reaction(
+        service_id=github.id,
+        name='create_issue',
+        display_name='Create Issue',
+        description='Creates a new issue in a repository',
+        config_schema={
+            'type': 'object',
+            'properties': {
+                'repo_name': {
+                    'type': 'string',
+                    'description': 'Repository name (e.g., username/repo)'
+                },
+                'title': {
+                    'type': 'string',
+                    'maxLength': 200,
+                    'description': 'Issue title'
+                },
+                'body': {
+                    'type': 'string',
+                    'maxLength': 5000,
+                    'description': 'Issue description'
+                }
+            },
+            'required': ['repo_name', 'title', 'body']
+        }
+    )
+    db.session.add(reaction1)
+
+    print(f"{GREEN}      Created GitHub service with 3 actions and 1 reaction{RESET}")
+    return github
+
+
 def seed_all():
     """Seed all services"""
     print(f"\n{CYAN}=== Starting database seeding ==={RESET}\n")
@@ -470,6 +579,7 @@ def seed_all():
     seed_gmail_service()
     seed_drive_service()
     seed_facebook_service()
+    seed_github_service()
 
     db.session.commit()
 

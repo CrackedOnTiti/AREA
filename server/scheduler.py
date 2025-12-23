@@ -213,6 +213,81 @@ def check_facebook_new_post(area: UserArea) -> dict:
     return {'triggered': False}
 
 
+def check_github_repo_activity(area: UserArea) -> dict:
+    """Check GitHub for repository activity"""
+    # Get user's GitHub connection
+    action = Action.query.get(area.action_id)
+    github_service = Service.query.filter_by(name='github').first()
+
+    if not github_service:
+        return {'triggered': False, 'error': 'GitHub service not found'}
+
+    connection = UserServiceConnection.query.filter_by(
+        user_id=area.user_id,
+        service_id=github_service.id
+    ).first()
+
+    if not connection:
+        return {'triggered': False, 'error': 'GitHub not connected for this user'}
+
+    # Get repo name from config
+    repo_name = area.action_config.get('repo_name')
+    if not repo_name:
+        return {'triggered': False, 'error': 'No repo_name specified'}
+
+    # Calculate "since" timestamp (check activity from last 5 minutes)
+    since = datetime.now(timezone.utc) - timedelta(minutes=5)
+    since_timestamp = int(since.timestamp())
+
+    # Check action type
+    if action.name == 'new_star_on_repo':
+        stars = fetch_repo_stargazers(connection.access_token, repo_name, since_timestamp=since_timestamp, limit=10)
+
+        for star in stars:
+            # Check if we've already processed this star
+            existing_log = WorkflowLog.query.filter_by(
+                area_id=area.id,
+                message=f"New star from {star['user']}"
+            ).first()
+
+            if existing_log:
+                continue
+
+            return {'triggered': True, 'star_data': star}
+
+    elif action.name == 'new_issue_created':
+        issues = fetch_repo_issues(connection.access_token, repo_name, since_timestamp=since_timestamp, limit=10)
+
+        for issue in issues:
+            # Check if we've already processed this issue
+            existing_log = WorkflowLog.query.filter_by(
+                area_id=area.id,
+                message=f"Issue #{issue['number']}: {issue['title']}"
+            ).first()
+
+            if existing_log:
+                continue
+
+            return {'triggered': True, 'issue_data': issue}
+
+    elif action.name == 'new_pr_opened':
+        prs = fetch_repo_pull_requests(connection.access_token, repo_name, since_timestamp=since_timestamp, limit=10)
+
+        for pr in prs:
+            # Check if we've already processed this PR
+            existing_log = WorkflowLog.query.filter_by(
+                area_id=area.id,
+                message=f"PR #{pr['number']}: {pr['title']}"
+            ).first()
+
+            if existing_log:
+                continue
+
+            return {'triggered': True, 'pr_data': pr}
+
+    return {'triggered': False}
+
+
 def execute_send_email(area: UserArea) -> dict:
     """Execute the send_email reaction"""
     config = area.reaction_config

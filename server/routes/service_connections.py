@@ -287,3 +287,116 @@ def disconnect_facebook(current_user):
     db.session.commit()
 
     return jsonify({'message': 'Facebook disconnected successfully'}), 200
+
+
+@connections_bp.route('/github', methods=['GET', 'POST'])
+def connect_github():
+    """Initiate GitHub OAuth flow for service connection"""
+    from app import oauth
+    from utils.auth_utils import decode_token
+
+    # Try to get token from Authorization header or URL param
+    token = request.headers.get('Authorization', '').replace('Bearer ', '')
+    if not token:
+        token = request.args.get('token')
+
+    if not token:
+        return jsonify({'error': 'Authentication required'}), 401
+
+    # Decode token to get user
+    payload = decode_token(token)
+    if not payload:
+        return jsonify({'error': 'Invalid token'}), 401
+
+    user_id = payload.get('user_id')
+    if not user_id:
+        return jsonify({'error': 'Invalid token payload'}), 401
+
+    # Store user_id in session for callback
+    session['connecting_user_id'] = user_id
+
+    # Redirect to GitHub OAuth
+    redirect_uri = url_for('service_connections.github_callback', _external=True)
+    return oauth.github.authorize_redirect(redirect_uri)
+
+
+@connections_bp.route('/github/callback', methods=['GET'])
+def github_callback():
+    """Handle GitHub OAuth callback for service connection"""
+    from app import oauth
+
+    # Get user_id from session
+    user_id = session.pop('connecting_user_id', None)
+    if not user_id:
+        return jsonify({'error': 'Invalid session'}), 400
+
+    try:
+        # Exchange authorization code for token
+        token = oauth.github.authorize_access_token()
+
+        # Get GitHub service
+        github_service = Service.query.filter_by(name='github').first()
+
+        if not github_service:
+            return jsonify({'error': 'GitHub service not found'}), 404
+
+        # GitHub tokens don't typically expire
+        expires_at = datetime.now(timezone.utc) + timedelta(days=365)
+
+        # Create/update connection
+        connection = UserServiceConnection.query.filter_by(
+            user_id=user_id,
+            service_id=github_service.id
+        ).first()
+
+        if connection:
+            # Update existing connection
+            connection.access_token = token['access_token']
+            connection.token_expires_at = expires_at
+            connection.updated_at = datetime.now(timezone.utc)
+        else:
+            # Create new connection
+            connection = UserServiceConnection(
+                user_id=user_id,
+                service_id=github_service.id,
+                access_token=token['access_token'],
+                refresh_token=None,
+                token_expires_at=expires_at
+            )
+            db.session.add(connection)
+
+        db.session.commit()
+
+        # Redirect to frontend success page or return success response
+        return jsonify({
+            'success': True,
+            'message': 'GitHub connected successfully',
+            'connection': connection.to_dict()
+        }), 200
+
+    except Exception as e:
+        return jsonify({'error': f'OAuth failed: {str(e)}'}), 500
+
+
+@connections_bp.route('/github', methods=['DELETE'])
+@require_auth
+def disconnect_github(current_user):
+    """Disconnect GitHub service"""
+    # Get GitHub service ID
+    github_service = Service.query.filter_by(name='github').first()
+    if not github_service:
+        return jsonify({'error': 'GitHub service not found'}), 404
+
+    # Find and delete connection
+    connection = UserServiceConnection.query.filter_by(
+        user_id=current_user.id,
+        service_id=github_service.id
+    ).first()
+
+    if not connection:
+        return jsonify({'error': 'GitHub not connected'}), 404
+
+    db.session.delete(connection)
+    db.session.commit()
+
+    return jsonify({'message': 'GitHub disconnected successfully'}), 200

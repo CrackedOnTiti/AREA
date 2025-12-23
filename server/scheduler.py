@@ -439,6 +439,35 @@ def execute_drive_share_file(area: UserArea) -> dict:
         return {'success': False, 'error': str(e)}
 
 
+def execute_github_create_issue(area: UserArea) -> dict:
+    """Execute the create_issue reaction for GitHub"""
+    # Get user's GitHub connection
+    github_service = Service.query.filter_by(name='github').first()
+    if not github_service:
+        return {'success': False, 'error': 'GitHub service not found'}
+
+    connection = UserServiceConnection.query.filter_by(
+        user_id=area.user_id,
+        service_id=github_service.id
+    ).first()
+
+    if not connection:
+        return {'success': False, 'error': 'GitHub not connected'}
+
+    # Get config
+    config = area.reaction_config
+    repo_name = config.get('repo_name')
+    title = config.get('title')
+    body = config.get('body', '')
+
+    if not repo_name or not title:
+        return {'success': False, 'error': 'Missing repo_name or title'}
+
+    # Create issue
+    result = create_issue(connection.access_token, repo_name, title, body)
+    return result
+
+
 def execute_reaction(area: UserArea) -> dict:
     """Execute the appropriate reaction based on the reaction type"""
     reaction = Reaction.query.get(area.reaction_id)
@@ -458,6 +487,8 @@ def execute_reaction(area: UserArea) -> dict:
         return execute_drive_create_folder(area)
     elif reaction.name == 'share_file':
         return execute_drive_share_file(area)
+    elif reaction.name == 'create_issue':
+        return execute_github_create_issue(area)
     else:
         return {
             'success': False,

@@ -542,6 +542,20 @@ def check_and_execute_workflows(app):
                             message_preview = post_data['message'][:50] if post_data['message'] else 'No message'
                             trigger_metadata = f"Facebook post: {message_preview}"
 
+                    elif action.name in ['new_star_on_repo', 'new_issue_created', 'new_pr_opened']:
+                        result = check_github_repo_activity(area)
+                        should_trigger = result.get('triggered', False)
+                        if should_trigger:
+                            if action.name == 'new_star_on_repo':
+                                star_data = result.get('star_data')
+                                trigger_metadata = f"New star from {star_data['user']}"
+                            elif action.name == 'new_issue_created':
+                                issue_data = result.get('issue_data')
+                                trigger_metadata = f"Issue #{issue_data['number']}: {issue_data['title']}"
+                            elif action.name == 'new_pr_opened':
+                                pr_data = result.get('pr_data')
+                                trigger_metadata = f"PR #{pr_data['number']}: {pr_data['title']}"
+
                     if should_trigger:
                         # Execute the reaction
                         start_time = datetime.now(timezone.utc)

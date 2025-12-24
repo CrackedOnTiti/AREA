@@ -428,8 +428,9 @@ def connect_spotify():
     # Store user_id in session for callback
     session['connecting_user_id'] = user_id
 
-    # Redirect to Spotify OAuth
+    # Redirect to Spotify OAuth - use 127.0.0.1 instead of localhost for Spotify
     redirect_uri = url_for('service_connections.spotify_callback', _external=True)
+    redirect_uri = redirect_uri.replace('localhost', '127.0.0.1')
     return oauth.spotify.authorize_redirect(redirect_uri)
 
 

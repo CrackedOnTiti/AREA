@@ -568,6 +568,148 @@ def seed_github_service():
     return github
 
 
+def seed_spotify_service():
+    """Seed Spotify service with music playback actions and reactions"""
+    # Check if already exists
+    spotify = Service.query.filter_by(name='spotify').first()
+    if spotify:
+        print("  Spotify service already exists, skipping...")
+        return spotify
+
+    # Create Spotify service
+    spotify = Service(
+        name='spotify',
+        display_name='Spotify',
+        description='Music playback control and playlist management',
+        requires_oauth=True,
+        is_active=True
+    )
+    db.session.add(spotify)
+    db.session.flush()
+
+    # Action: track_added_to_playlist
+    action1 = Action(
+        service_id=spotify.id,
+        name='track_added_to_playlist',
+        display_name='Track Added to Playlist',
+        description='Triggers when a new track is added to a specific playlist',
+        config_schema={
+            'type': 'object',
+            'properties': {
+                'playlist_id': {
+                    'type': 'string',
+                    'description': 'Spotify playlist ID'
+                }
+            },
+            'required': ['playlist_id']
+        }
+    )
+    db.session.add(action1)
+
+    # Action: track_saved
+    action2 = Action(
+        service_id=spotify.id,
+        name='track_saved',
+        display_name='Track Saved to Library',
+        description='Triggers when you save (like) a new track to your library',
+        config_schema={
+            'type': 'object',
+            'properties': {}
+        }
+    )
+    db.session.add(action2)
+
+    # Action: playback_started
+    action3 = Action(
+        service_id=spotify.id,
+        name='playback_started',
+        display_name='Playback Started',
+        description='Triggers when you start playing music on Spotify',
+        config_schema={
+            'type': 'object',
+            'properties': {}
+        }
+    )
+    db.session.add(action3)
+
+    # Reaction: add_to_playlist
+    reaction1 = Reaction(
+        service_id=spotify.id,
+        name='add_to_playlist',
+        display_name='Add Track to Playlist',
+        description='Add a track to a specific playlist',
+        config_schema={
+            'type': 'object',
+            'properties': {
+                'playlist_id': {
+                    'type': 'string',
+                    'description': 'Spotify playlist ID'
+                },
+                'track_uri': {
+                    'type': 'string',
+                    'description': 'Spotify track URI (e.g., spotify:track:xxxxx or just track ID)'
+                }
+            },
+            'required': ['playlist_id', 'track_uri']
+        }
+    )
+    db.session.add(reaction1)
+
+    # Reaction: create_playlist
+    reaction2 = Reaction(
+        service_id=spotify.id,
+        name='create_playlist',
+        display_name='Create Playlist',
+        description='Create a new playlist in your Spotify account',
+        config_schema={
+            'type': 'object',
+            'properties': {
+                'name': {
+                    'type': 'string',
+                    'maxLength': 100,
+                    'description': 'Playlist name'
+                },
+                'description': {
+                    'type': 'string',
+                    'maxLength': 300,
+                    'description': 'Playlist description (optional)'
+                },
+                'public': {
+                    'type': 'boolean',
+                    'description': 'Make playlist public (default: true)'
+                }
+            },
+            'required': ['name']
+        }
+    )
+    db.session.add(reaction2)
+
+    # Reaction: start_playback
+    reaction3 = Reaction(
+        service_id=spotify.id,
+        name='start_playback',
+        display_name='Start Playback',
+        description='Start playing a specific track or playlist',
+        config_schema={
+            'type': 'object',
+            'properties': {
+                'track_uri': {
+                    'type': 'string',
+                    'description': 'Spotify track URI (optional)'
+                },
+                'context_uri': {
+                    'type': 'string',
+                    'description': 'Spotify playlist/album URI (optional)'
+                }
+            }
+        }
+    )
+    db.session.add(reaction3)
+
+    print(f"{GREEN}      Created Spotify service with 3 actions and 3 reactions{RESET}")
+    return spotify
+
+
 def seed_all():
     """Seed all services"""
     print(f"\n{CYAN}=== Starting database seeding ==={RESET}\n")
@@ -580,6 +722,7 @@ def seed_all():
     seed_drive_service()
     seed_facebook_service()
     seed_github_service()
+    seed_spotify_service()
 
     db.session.commit()
 

@@ -61,6 +61,18 @@ oauth.register(
     }
 )
 
+oauth.register(
+    name='spotify',
+    client_id=Config.SPOTIFY_CLIENT_ID,
+    client_secret=Config.SPOTIFY_CLIENT_SECRET,
+    authorize_url='https://accounts.spotify.com/authorize',
+    access_token_url='https://accounts.spotify.com/api/token',
+    api_base_url='https://api.spotify.com/v1/',
+    client_kwargs={
+        'scope': 'user-read-playback-state user-modify-playback-state playlist-read-private playlist-modify-public playlist-modify-private user-library-read user-library-modify'
+    }
+)
+
 # create tables (basically mkdir -p)
 with app.app_context():
     db.create_all()

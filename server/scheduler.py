@@ -292,6 +292,86 @@ def check_github_repo_activity(area: UserArea) -> dict:
     return {'triggered': False}
 
 
+def check_spotify_activity(area: UserArea) -> dict:
+    """Check Spotify for new activity (tracks added, saved, playback)"""
+    # Get user's Spotify connection
+    action = Action.query.get(area.action_id)
+    spotify_service = Service.query.filter_by(name='spotify').first()
+
+    if not spotify_service:
+        return {'triggered': False, 'error': 'Spotify service not found'}
+
+    connection = UserServiceConnection.query.filter_by(
+        user_id=area.user_id,
+        service_id=spotify_service.id
+    ).first()
+
+    if not connection:
+        return {'triggered': False, 'error': 'Spotify not connected for this user'}
+
+    # Calculate "since" timestamp (check activity from last 5 minutes)
+    since = datetime.now(timezone.utc) - timedelta(minutes=5)
+    since_timestamp = int(since.timestamp())
+
+    if action.name == 'track_added_to_playlist':
+        playlist_id = area.action_config.get('playlist_id')
+        if not playlist_id:
+            return {'triggered': False, 'error': 'Missing playlist_id in config'}
+
+        tracks = get_playlist_tracks(connection.access_token, playlist_id, since_timestamp=since_timestamp, limit=10)
+
+        for track in tracks:
+            # Check if we've already processed this track
+            existing_log = WorkflowLog.query.filter_by(
+                area_id=area.id,
+                message=f"Track added: {track['name']} by {track['artists']}"
+            ).first()
+
+            if existing_log:
+                continue
+
+            return {'triggered': True, 'track_data': track}
+
+    elif action.name == 'track_saved':
+        tracks = get_user_saved_tracks(connection.access_token, since_timestamp=since_timestamp, limit=10)
+
+        for track in tracks:
+            # Check if we've already processed this track
+            existing_log = WorkflowLog.query.filter_by(
+                area_id=area.id,
+                message=f"Track saved: {track['name']} by {track['artists']}"
+            ).first()
+
+            if existing_log:
+                continue
+
+            return {'triggered': True, 'track_data': track}
+
+    elif action.name == 'playback_started':
+        playback = get_current_playback(connection.access_token)
+
+        if playback and playback.get('is_playing'):
+            # Check if we've already logged this playback session recently
+            existing_log = WorkflowLog.query.filter_by(
+                area_id=area.id,
+                message=f"Now playing: {playback['track_name']} by {playback['artists']}"
+            ).first()
+
+            if existing_log:
+                # Check if it was logged recently (within last 5 minutes)
+                log_time = existing_log.triggered_at
+                if log_time.tzinfo is None:
+                    log_time = log_time.replace(tzinfo=timezone.utc)
+
+                time_since_log = (datetime.now(timezone.utc) - log_time).total_seconds()
+                if time_since_log < 300:  # 5 minutes
+                    return {'triggered': False}
+
+            return {'triggered': True, 'playback_data': playback}
+
+    return {'triggered': False}
+
+
 def execute_send_email(area: UserArea) -> dict:
     """Execute the send_email reaction"""
     config = area.reaction_config

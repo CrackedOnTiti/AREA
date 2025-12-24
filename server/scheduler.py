@@ -552,6 +552,93 @@ def execute_github_create_issue(area: UserArea) -> dict:
     return result
 
 
+def execute_spotify_add_to_playlist(area: UserArea) -> dict:
+    """Execute the add_to_playlist reaction for Spotify"""
+    # Get user's Spotify connection
+    spotify_service = Service.query.filter_by(name='spotify').first()
+    if not spotify_service:
+        return {'success': False, 'error': 'Spotify service not found'}
+
+    connection = UserServiceConnection.query.filter_by(
+        user_id=area.user_id,
+        service_id=spotify_service.id
+    ).first()
+
+    if not connection:
+        return {'success': False, 'error': 'Spotify not connected'}
+
+    # Get config
+    config = area.reaction_config
+    playlist_id = config.get('playlist_id')
+    track_uri = config.get('track_uri')
+
+    if not playlist_id or not track_uri:
+        return {'success': False, 'error': 'Missing playlist_id or track_uri'}
+
+    # Add track to playlist
+    result = add_track_to_playlist(connection.access_token, playlist_id, track_uri)
+    return result
+
+
+def execute_spotify_create_playlist(area: UserArea) -> dict:
+    """Execute the create_playlist reaction for Spotify"""
+    # Get user's Spotify connection
+    spotify_service = Service.query.filter_by(name='spotify').first()
+    if not spotify_service:
+        return {'success': False, 'error': 'Spotify service not found'}
+
+    connection = UserServiceConnection.query.filter_by(
+        user_id=area.user_id,
+        service_id=spotify_service.id
+    ).first()
+
+    if not connection:
+        return {'success': False, 'error': 'Spotify not connected'}
+
+    # Get user profile to get user ID
+    user_profile = get_user_profile(connection.access_token)
+    if not user_profile:
+        return {'success': False, 'error': 'Failed to get Spotify user profile'}
+
+    # Get config
+    config = area.reaction_config
+    name = config.get('name')
+    description = config.get('description', '')
+    public = config.get('public', True)
+
+    if not name:
+        return {'success': False, 'error': 'Missing playlist name'}
+
+    # Create playlist
+    result = spotify_create_playlist(connection.access_token, user_profile['id'], name, description, public)
+    return result
+
+
+def execute_spotify_start_playback(area: UserArea) -> dict:
+    """Execute the start_playback reaction for Spotify"""
+    # Get user's Spotify connection
+    spotify_service = Service.query.filter_by(name='spotify').first()
+    if not spotify_service:
+        return {'success': False, 'error': 'Spotify service not found'}
+
+    connection = UserServiceConnection.query.filter_by(
+        user_id=area.user_id,
+        service_id=spotify_service.id
+    ).first()
+
+    if not connection:
+        return {'success': False, 'error': 'Spotify not connected'}
+
+    # Get config
+    config = area.reaction_config
+    track_uri = config.get('track_uri')
+    context_uri = config.get('context_uri')
+
+    # Start playback
+    result = start_playback(connection.access_token, track_uri=track_uri, context_uri=context_uri)
+    return result
+
+
 def execute_reaction(area: UserArea) -> dict:
     """Execute the appropriate reaction based on the reaction type"""
     reaction = Reaction.query.get(area.reaction_id)

@@ -660,6 +660,12 @@ def execute_reaction(area: UserArea) -> dict:
         return execute_drive_share_file(area)
     elif reaction.name == 'create_issue':
         return execute_github_create_issue(area)
+    elif reaction.name == 'add_to_playlist':
+        return execute_spotify_add_to_playlist(area)
+    elif reaction.name == 'create_playlist':
+        return execute_spotify_create_playlist(area)
+    elif reaction.name == 'start_playback':
+        return execute_spotify_start_playback(area)
     else:
         return {
             'success': False,

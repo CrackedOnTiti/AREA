@@ -50,9 +50,18 @@
     <h1>AREA Demo</h1>
 
     <div id="login-section">
+        <h3>Login with Username/Password</h3>
         <input type="text" id="username" placeholder="Username" value="admin">
         <input type="password" id="password" placeholder="Password" value="Admin123!">
         <button onclick="login()">Login</button>
+
+        <h3>Or Login with OAuth</h3>
+        <button onclick="loginWithGoogle()" style="background-color: #4285f4; color: white;">
+            Login with Google
+        </button>
+        <button onclick="loginWithFacebook()" style="background-color: #1877f2; color: white;">
+            Login with Facebook
+        </button>
     </div>
 
     <div id="main-section" style="display: none;">
@@ -60,6 +69,8 @@
         <div class="section">
             <h2>Connections</h2>
             <button onclick="connectGmail()">Connect Gmail</button>
+            <button onclick="connectFacebook()">Connect Facebook</button>
+            <button onclick="connectGitHub()">Connect GitHub</button>
             <button onclick="checkConnections()">Check Connections</button>
         </div>
 
@@ -333,7 +344,8 @@
                 div.className = 'workflow-item';
                 div.innerHTML = `
                     <strong>${workflow.name}</strong> - ${workflow.is_active ? 'Active' : 'Inactive'}
-                    <br>Action: ${workflow.action_id} | Reaction: ${workflow.reaction_id}
+                    <br>Action: ${workflow.action.service} - ${workflow.action.display_name}
+                    <br>Reaction: ${workflow.reaction.service} - ${workflow.reaction.display_name}
                     <button onclick="deleteWorkflow(${workflow.id})">Delete</button>
                 `;
                 container.appendChild(div);
@@ -366,6 +378,22 @@
                 return;
             }
             window.location.href = `${BASE_URL}/api/connections/gmail?token=${token}`;
+        }
+
+        function connectFacebook() {
+            if (!token) {
+                showStatus('Please login first');
+                return;
+            }
+            window.location.href = `${BASE_URL}/api/connections/facebook?token=${token}`;
+        }
+
+        function connectGitHub() {
+            if (!token) {
+                showStatus('Please login first');
+                return;
+            }
+            window.location.href = `${BASE_URL}/api/connections/github?token=${token}`;
         }
 
         async function checkConnections() {
@@ -401,6 +429,14 @@
             document.getElementById('login-section').style.display = 'block';
             document.getElementById('main-section').style.display = 'none';
             showStatus('Logged out');
+        }
+
+        function loginWithGoogle() {
+            window.location.href = `${BASE_URL}/api/auth/google/login`;
+        }
+
+        function loginWithFacebook() {
+            window.location.href = `${BASE_URL}/api/auth/facebook/login`;
         }
     </script>
 </body>

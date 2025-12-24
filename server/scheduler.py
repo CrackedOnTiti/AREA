@@ -733,6 +733,20 @@ def check_and_execute_workflows(app):
                                 pr_data = result.get('pr_data')
                                 trigger_metadata = f"PR #{pr_data['number']}: {pr_data['title']}"
 
+                    elif action.name in ['track_added_to_playlist', 'track_saved', 'playback_started']:
+                        result = check_spotify_activity(area)
+                        should_trigger = result.get('triggered', False)
+                        if should_trigger:
+                            if action.name == 'track_added_to_playlist':
+                                track_data = result.get('track_data')
+                                trigger_metadata = f"Track added: {track_data['name']} by {track_data['artists']}"
+                            elif action.name == 'track_saved':
+                                track_data = result.get('track_data')
+                                trigger_metadata = f"Track saved: {track_data['name']} by {track_data['artists']}"
+                            elif action.name == 'playback_started':
+                                playback_data = result.get('playback_data')
+                                trigger_metadata = f"Now playing: {playback_data['track_name']} by {playback_data['artists']}"
+
                     if should_trigger:
                         # Execute the reaction
                         start_time = datetime.now(timezone.utc)

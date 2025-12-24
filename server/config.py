@@ -35,6 +35,10 @@ class Config:
     GITHUB_CLIENT_ID = os.getenv('GITHUB_CLIENT_ID')
     GITHUB_CLIENT_SECRET = os.getenv('GITHUB_CLIENT_SECRET')
 
+    # Spotify OAuth2
+    SPOTIFY_CLIENT_ID = os.getenv('SPOTIFY_CLIENT_ID')
+    SPOTIFY_CLIENT_SECRET = os.getenv('SPOTIFY_CLIENT_SECRET')
+
     # Flask
     SECRET_KEY = os.getenv('JWT_SECRET_KEY')  # Needed for OAuth session state (CSRF protection)
     DEBUG = True

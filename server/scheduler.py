@@ -7,6 +7,10 @@ from utils.gmail_client import create_gmail_service, fetch_new_emails, check_sen
 from utils.drive_client import create_drive_service, fetch_recent_files, get_folder_id_by_name, create_file, create_folder, share_file
 from utils.facebook_client import fetch_user_posts, check_post_contains_keyword
 from utils.github_client import fetch_repo_stargazers, fetch_repo_issues, fetch_repo_pull_requests, create_issue
+from utils.spotify_client import (
+    get_playlist_tracks, get_user_saved_tracks, get_current_playback, get_user_profile,
+    add_track_to_playlist, create_playlist as spotify_create_playlist, start_playback
+)
 from config import Config
 
 scheduler = None

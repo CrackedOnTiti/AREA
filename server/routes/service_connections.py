@@ -400,3 +400,118 @@ def disconnect_github(current_user):
     db.session.commit()
 
     return jsonify({'message': 'GitHub disconnected successfully'}), 200
+
+
+@connections_bp.route('/spotify', methods=['GET', 'POST'])
+def connect_spotify():
+    """Initiate Spotify OAuth flow for service connection"""
+    from app import oauth
+    from utils.auth_utils import decode_token
+
+    # Try to get token from Authorization header or URL param
+    token = request.headers.get('Authorization', '').replace('Bearer ', '')
+    if not token:
+        token = request.args.get('token')
+
+    if not token:
+        return jsonify({'error': 'Authentication required'}), 401
+
+    # Decode token to get user
+    payload = decode_token(token)
+    if not payload:
+        return jsonify({'error': 'Invalid token'}), 401
+
+    user_id = payload.get('user_id')
+    if not user_id:
+        return jsonify({'error': 'Invalid token payload'}), 401
+
+    # Store user_id in session for callback
+    session['connecting_user_id'] = user_id
+
+    # Redirect to Spotify OAuth
+    redirect_uri = url_for('service_connections.spotify_callback', _external=True)
+    return oauth.spotify.authorize_redirect(redirect_uri)
+
+
+@connections_bp.route('/spotify/callback', methods=['GET'])
+def spotify_callback():
+    """Handle Spotify OAuth callback for service connection"""
+    from app import oauth
+
+    # Get user_id from session
+    user_id = session.pop('connecting_user_id', None)
+    if not user_id:
+        return jsonify({'error': 'Invalid session'}), 400
+
+    try:
+        # Exchange authorization code for token
+        token = oauth.spotify.authorize_access_token()
+
+        # Get Spotify service
+        spotify_service = Service.query.filter_by(name='spotify').first()
+
+        if not spotify_service:
+            return jsonify({'error': 'Spotify service not found'}), 404
+
+        # Spotify tokens typically expire in 1 hour
+        expires_in = token.get('expires_in', 3600)
+        expires_at = datetime.now(timezone.utc) + timedelta(seconds=expires_in)
+
+        # Create/update connection
+        connection = UserServiceConnection.query.filter_by(
+            user_id=user_id,
+            service_id=spotify_service.id
+        ).first()
+
+        if connection:
+            # Update existing connection
+            connection.access_token = token['access_token']
+            connection.refresh_token = token.get('refresh_token', connection.refresh_token)
+            connection.token_expires_at = expires_at
+            connection.updated_at = datetime.now(timezone.utc)
+        else:
+            # Create new connection
+            connection = UserServiceConnection(
+                user_id=user_id,
+                service_id=spotify_service.id,
+                access_token=token['access_token'],
+                refresh_token=token.get('refresh_token'),
+                token_expires_at=expires_at
+            )
+            db.session.add(connection)
+
+        db.session.commit()
+
+        # Redirect to frontend success page or return success response
+        return jsonify({
+            'success': True,
+            'message': 'Spotify connected successfully',
+            'connection': connection.to_dict()
+        }), 200
+
+    except Exception as e:
+        return jsonify({'error': f'OAuth failed: {str(e)}'}), 500
+
+
+@connections_bp.route('/spotify', methods=['DELETE'])
+@require_auth
+def disconnect_spotify(current_user):
+    """Disconnect Spotify service"""
+    # Get Spotify service ID
+    spotify_service = Service.query.filter_by(name='spotify').first()
+    if not spotify_service:
+        return jsonify({'error': 'Spotify service not found'}), 404
+
+    # Find and delete connection
+    connection = UserServiceConnection.query.filter_by(
+        user_id=current_user.id,
+        service_id=spotify_service.id
+    ).first()
+
+    if not connection:
+        return jsonify({'error': 'Spotify not connected'}), 404
+
+    db.session.delete(connection)
+    db.session.commit()
+
+    return jsonify({'message': 'Spotify disconnected successfully'}), 200

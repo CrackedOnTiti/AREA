@@ -71,6 +71,7 @@
             <button onclick="connectGmail()">Connect Gmail</button>
             <button onclick="connectFacebook()">Connect Facebook</button>
             <button onclick="connectGitHub()">Connect GitHub</button>
+            <button onclick="connectSpotify()">Connect Spotify</button>
             <button onclick="checkConnections()">Check Connections</button>
         </div>
 
@@ -394,6 +395,14 @@
                 return;
             }
             window.location.href = `${BASE_URL}/api/connections/github?token=${token}`;
+        }
+
+        function connectSpotify() {
+            if (!token) {
+                showStatus('Please login first');
+                return;
+            }
+            window.location.href = `${BASE_URL}/api/connections/spotify?token=${token}`;
         }
 
         async function checkConnections() {

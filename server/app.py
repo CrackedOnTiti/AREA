@@ -20,8 +20,8 @@ app = Flask(__name__)
 
 app.config.from_object(Config)
 
-# Initialize CORS
-CORS(app, origins=Config.CORS_ORIGINS)
+# Initialize CORS with credentials support
+CORS(app, origins=Config.CORS_ORIGINS, supports_credentials=True)
 
 # Initialize database
 db.init_app(app)

@@ -455,7 +455,27 @@ def seed_facebook_service():
     )
     db.session.add(action2)
 
-    print(f"{GREEN}      Created Facebook service with 2 actions{RESET}")
+    # Reaction: create_post
+    reaction1 = Reaction(
+        service_id=facebook.id,
+        name='create_post',
+        display_name='Create Post',
+        description='Creates a new post on your Facebook timeline',
+        config_schema={
+            'type': 'object',
+            'properties': {
+                'message': {
+                    'type': 'string',
+                    'description': 'Content of the post to create',
+                    'maxLength': 5000
+                }
+            },
+            'required': ['message']
+        }
+    )
+    db.session.add(reaction1)
+
+    print(f"{GREEN}      Created Facebook service with 2 actions and 1 reaction{RESET}")
     return facebook
 
 

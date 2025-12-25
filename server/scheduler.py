@@ -685,6 +685,8 @@ def execute_reaction(area: UserArea) -> dict:
         return execute_drive_create_folder(area)
     elif reaction.name == 'share_file':
         return execute_drive_share_file(area)
+    elif reaction.name == 'create_post':
+        return execute_facebook_create_post(area)
     elif reaction.name == 'create_issue':
         return execute_github_create_issue(area)
     elif reaction.name == 'add_to_playlist':

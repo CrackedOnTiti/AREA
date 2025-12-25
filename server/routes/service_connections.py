@@ -5,6 +5,10 @@ from datetime import datetime, timezone, timedelta
 
 connections_bp = Blueprint('service_connections', __name__, url_prefix='/api/connections')
 
+# Temporary storage for OAuth state -> user_id mapping
+# In production, use Redis or database
+oauth_state_storage = {}
+
 
 @connections_bp.route('', methods=['GET'])
 @require_auth
@@ -425,13 +429,21 @@ def connect_spotify():
     if not user_id:
         return jsonify({'error': 'Invalid token payload'}), 401
 
-    # Store user_id in session for callback
-    session['connecting_user_id'] = user_id
-
-    # Redirect to Spotify OAuth - use 127.0.0.1 instead of localhost for Spotify
+    # Generate redirect URI
     redirect_uri = url_for('service_connections.spotify_callback', _external=True)
     redirect_uri = redirect_uri.replace('localhost', '127.0.0.1')
-    return oauth.spotify.authorize_redirect(redirect_uri)
+
+    # Get the OAuth response to extract the state before redirect
+    auth_response = oauth.spotify.authorize_redirect(redirect_uri)
+
+    # Extract state from the redirect URL
+    import re
+    state_match = re.search(r'state=([^&]+)', auth_response.location)
+    if state_match:
+        oauth_state = state_match.group(1)
+        oauth_state_storage[oauth_state] = user_id
+
+    return auth_response
 
 
 @connections_bp.route('/spotify/callback', methods=['GET'])
@@ -439,14 +451,61 @@ def spotify_callback():
     """Handle Spotify OAuth callback for service connection"""
     from app import oauth
 
-    # Get user_id from session
-    user_id = session.pop('connecting_user_id', None)
+    # Get state and code from query parameters
+    oauth_state = request.args.get('state')
+    code = request.args.get('code')
+    error = request.args.get('error')
+
+    if error:
+        return jsonify({'error': f'OAuth error: {error}'}), 400
+
+    if not code or not oauth_state:
+        return jsonify({'error': 'Missing authorization code or state'}), 400
+
+    # Retrieve user_id from our temporary storage
+    user_id = oauth_state_storage.get(oauth_state)
+
     if not user_id:
-        return jsonify({'error': 'Invalid session'}), 400
+        return jsonify({'error': 'Invalid or expired OAuth state'}), 400
+
+    # Clean up the state storage
+    oauth_state_storage.pop(oauth_state, None)
 
     try:
-        # Exchange authorization code for token
-        token = oauth.spotify.authorize_access_token()
+        # Exchange authorization code for token manually
+        # We can't use authorize_access_token() because it requires session state for CSRF
+        # Instead, we'll manually exchange the code using requests
+
+        import requests
+        import base64
+        from config import Config
+
+        # Prepare credentials for basic auth
+        client_id = Config.SPOTIFY_CLIENT_ID
+        client_secret = Config.SPOTIFY_CLIENT_SECRET
+        auth_str = f"{client_id}:{client_secret}"
+        auth_b64 = base64.b64encode(auth_str.encode()).decode()
+
+        # Exchange code for token
+        redirect_uri = url_for('service_connections.spotify_callback', _external=True).replace('localhost', '127.0.0.1')
+
+        token_response = requests.post(
+            'https://accounts.spotify.com/api/token',
+            headers={
+                'Authorization': f'Basic {auth_b64}',
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            data={
+                'grant_type': 'authorization_code',
+                'code': code,
+                'redirect_uri': redirect_uri
+            }
+        )
+
+        if token_response.status_code != 200:
+            return jsonify({'error': f'Token exchange failed: {token_response.text}'}), 500
+
+        token = token_response.json()
 
         # Get Spotify service
         spotify_service = Service.query.filter_by(name='spotify').first()

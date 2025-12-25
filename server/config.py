@@ -43,6 +43,11 @@ class Config:
     SECRET_KEY = os.getenv('JWT_SECRET_KEY')  # Needed for OAuth session state (CSRF protection)
     DEBUG = True
 
+    # Session configuration for OAuth
+    SESSION_COOKIE_SAMESITE = 'Lax'  # Allow cookies in OAuth redirects
+    SESSION_COOKIE_SECURE = False  # Set to True in production with HTTPS
+    SESSION_COOKIE_HTTPONLY = True
+
     # SMTP Email Configuration
     SMTP_HOST = os.getenv('SMTP_HOST', 'smtp.gmail.com')
     SMTP_PORT = int(os.getenv('SMTP_PORT', '587'))

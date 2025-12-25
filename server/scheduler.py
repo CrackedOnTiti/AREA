@@ -523,6 +523,33 @@ def execute_drive_share_file(area: UserArea) -> dict:
         return {'success': False, 'error': str(e)}
 
 
+def execute_facebook_create_post(area: UserArea) -> dict:
+    """Execute the create_post reaction for Facebook"""
+    # Get user's Facebook connection
+    facebook_service = Service.query.filter_by(name='facebook').first()
+    if not facebook_service:
+        return {'success': False, 'error': 'Facebook service not found'}
+
+    connection = UserServiceConnection.query.filter_by(
+        user_id=area.user_id,
+        service_id=facebook_service.id
+    ).first()
+
+    if not connection:
+        return {'success': False, 'error': 'Facebook not connected'}
+
+    # Get config
+    config = area.reaction_config
+    message = config.get('message')
+
+    if not message:
+        return {'success': False, 'error': 'Missing message'}
+
+    # Create post
+    result = create_post(connection.access_token, message)
+    return result
+
+
 def execute_github_create_issue(area: UserArea) -> dict:
     """Execute the create_issue reaction for GitHub"""
     # Get user's GitHub connection

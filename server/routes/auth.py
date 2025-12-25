@@ -152,3 +152,67 @@ def google_callback():
 
     except Exception as e:
         return jsonify({'error': f'OAuth authentication failed: {str(e)}'}), 400
+
+
+@auth_bp.route('/facebook/login', methods=['GET'])
+def facebook_login():
+    """Initiate Facebook OAuth2 login"""
+    # Get OAuth instance from app extensions
+    oauth = current_app.extensions['authlib.integrations.flask_client']
+
+    # Generate callback URL
+    redirect_uri = url_for('auth.facebook_callback', _external=True)
+
+    # Redirect user to Facebook for auth
+    return oauth.facebook.authorize_redirect(redirect_uri)
+
+
+@auth_bp.route('/facebook/callback', methods=['GET'])
+def facebook_callback():
+    """Facebook OAuth2 callback"""
+    try:
+        # Get OAuth instance from app extensions
+        oauth = current_app.extensions['authlib.integrations.flask_client']
+
+        # Get access token from Facebook
+        token = oauth.facebook.authorize_access_token()
+
+        # Get user info from Facebook Graph API
+        resp = oauth.facebook.get('https://graph.facebook.com/me?fields=id,name,email')
+        user_info = resp.json()
+
+        if not user_info:
+            return jsonify({'error': 'Failed to get user info from Facebook'}), 400
+
+        # Extract user data
+        facebook_user_id = user_info.get('id')
+        email = user_info.get('email')
+        name = user_info.get('name')
+
+        if not facebook_user_id:
+            return jsonify({'error': 'Missing required user information from Facebook'}), 400
+
+        # Email might not be available if user denied permission
+        if not email:
+            email = f"{facebook_user_id}@facebook.user"  # Fallback email
+
+        # Find or create user
+        user = find_or_create_oauth_user(
+            provider='facebook',
+            provider_user_id=facebook_user_id,
+            email=email,
+            name=name
+        )
+
+        # Generate JWT token
+        jwt_token = generate_token(user.id)
+
+        # Return token and user info
+        return jsonify({
+            'message': 'Facebook login successful',
+            'token': jwt_token,
+            'user': user.to_dict()
+        }), 200
+
+    except Exception as e:
+        return jsonify({'error': f'OAuth authentication failed: {str(e)}'}), 400

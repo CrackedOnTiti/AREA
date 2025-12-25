@@ -20,8 +20,8 @@ app = Flask(__name__)
 
 app.config.from_object(Config)
 
-# Initialize CORS
-CORS(app, origins=Config.CORS_ORIGINS)
+# Initialize CORS with credentials support
+CORS(app, origins=Config.CORS_ORIGINS, supports_credentials=True)
 
 # Initialize database
 db.init_app(app)
@@ -34,8 +34,43 @@ oauth.register(
     client_secret=Config.GOOGLE_CLIENT_SECRET,
     server_metadata_url=Config.GOOGLE_DISCOVERY_URL,
     client_kwargs={
-        'scope': 'openid email profile https://www.googleapis.com/auth/gmail.readonly'
+        'scope': 'openid email profile https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/drive'
     } # Scope basically specifically asks for something during handshake
+)
+
+oauth.register(
+    name='facebook',
+    client_id=Config.FACEBOOK_CLIENT_ID,
+    client_secret=Config.FACEBOOK_CLIENT_SECRET,
+    authorize_url='https://www.facebook.com/v18.0/dialog/oauth',
+    access_token_url='https://graph.facebook.com/v18.0/oauth/access_token',
+    client_kwargs={
+        'scope': 'email public_profile'
+    }
+)
+
+oauth.register(
+    name='github',
+    client_id=Config.GITHUB_CLIENT_ID,
+    client_secret=Config.GITHUB_CLIENT_SECRET,
+    authorize_url='https://github.com/login/oauth/authorize',
+    access_token_url='https://github.com/login/oauth/access_token',
+    api_base_url='https://api.github.com/',
+    client_kwargs={
+        'scope': 'repo read:user user:email'
+    }
+)
+
+oauth.register(
+    name='spotify',
+    client_id=Config.SPOTIFY_CLIENT_ID,
+    client_secret=Config.SPOTIFY_CLIENT_SECRET,
+    authorize_url='https://accounts.spotify.com/authorize',
+    access_token_url='https://accounts.spotify.com/api/token',
+    api_base_url='https://api.spotify.com/v1/',
+    client_kwargs={
+        'scope': 'user-read-playback-state user-modify-playback-state playlist-read-private playlist-modify-public playlist-modify-private user-library-read user-library-modify'
+    }
 )
 
 # create tables (basically mkdir -p)

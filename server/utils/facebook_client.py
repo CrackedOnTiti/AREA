@@ -54,3 +54,37 @@ def check_post_contains_keyword(post, keyword):
     message = post.get('message', '').lower()
     keyword_lower = keyword.lower()
     return keyword_lower in message
+
+
+def create_post(access_token, message):
+    """Create a new post on user's Facebook timeline"""
+    try:
+        url = "https://graph.facebook.com/v18.0/me/feed"
+
+        data = {
+            'access_token': access_token,
+            'message': message
+        }
+
+        response = requests.post(url, data=data)
+        response.raise_for_status()
+
+        result = response.json()
+        return {
+            'success': True,
+            'post_id': result.get('id'),
+            'message': 'Post created successfully'
+        }
+
+    except requests.exceptions.RequestException as e:
+        print(f"Error creating Facebook post: {str(e)}")
+        return {
+            'success': False,
+            'error': str(e)
+        }
+    except Exception as e:
+        print(f"Error processing Facebook post creation: {str(e)}")
+        return {
+            'success': False,
+            'error': str(e)
+        }

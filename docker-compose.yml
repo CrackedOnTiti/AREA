@@ -10,6 +10,12 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 2s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
 
   init_db:
     build:
@@ -29,7 +35,8 @@ services:
       - SPOTIFY_CLIENT_SECRET=${SPOTIFY_CLIENT_SECRET}
     command: python init_db.py
     depends_on:
-      - database
+      database:
+        condition: service_healthy
     restart: "no"
 
   server:

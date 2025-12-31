@@ -1,4 +1,3 @@
-import time
 from flask import Flask, send_from_directory
 from flask_cors import CORS
 from authlib.integrations.flask_client import OAuth
@@ -13,8 +12,6 @@ from seed_data import seed_all
 from scheduler import init_scheduler, shutdown_scheduler
 import atexit
 import os
-
-time.sleep(5)  # need to wait for db service first
 
 app = Flask(__name__)
 

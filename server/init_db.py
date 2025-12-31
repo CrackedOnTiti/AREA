@@ -1,11 +1,7 @@
 #!/usr/bin/env python3
-import time
 from app import app, db
 from seed_data import seed_all
 from sqlalchemy import inspect
-
-# Wait for database to be ready
-time.sleep(5)
 
 print("Initializing database...")
 

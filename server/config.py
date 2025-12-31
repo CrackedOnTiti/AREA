@@ -27,9 +27,26 @@ class Config:
     GOOGLE_CLIENT_SECRET = os.getenv('GOOGLE_CLIENT_SECRET')
     GOOGLE_DISCOVERY_URL = "https://accounts.google.com/.well-known/openid-configuration" # For authlib i think
 
+    # Facebook OAuth2
+    FACEBOOK_CLIENT_ID = os.getenv('FACEBOOK_CLIENT_ID')
+    FACEBOOK_CLIENT_SECRET = os.getenv('FACEBOOK_CLIENT_SECRET')
+
+    # GitHub OAuth2
+    GITHUB_CLIENT_ID = os.getenv('GITHUB_CLIENT_ID')
+    GITHUB_CLIENT_SECRET = os.getenv('GITHUB_CLIENT_SECRET')
+
+    # Spotify OAuth2
+    SPOTIFY_CLIENT_ID = os.getenv('SPOTIFY_CLIENT_ID')
+    SPOTIFY_CLIENT_SECRET = os.getenv('SPOTIFY_CLIENT_SECRET')
+
     # Flask
     SECRET_KEY = os.getenv('JWT_SECRET_KEY')  # Needed for OAuth session state (CSRF protection)
     DEBUG = True
+
+    # Session configuration for OAuth
+    SESSION_COOKIE_SAMESITE = 'Lax'  # Allow cookies in OAuth redirects
+    SESSION_COOKIE_SECURE = False  # Set to True in production with HTTPS
+    SESSION_COOKIE_HTTPONLY = True
 
     # SMTP Email Configuration
     SMTP_HOST = os.getenv('SMTP_HOST', 'smtp.gmail.com')

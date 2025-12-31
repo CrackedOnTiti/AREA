@@ -1,6 +1,8 @@
 from flask import Blueprint, request, jsonify, url_for, redirect, current_app
 from database.models import db, User
-from utils.auth_utils import hash_password, verify_password, generate_token, require_auth, password_complexity, find_or_create_oauth_user
+from utils.auth_utils import hash_password, verify_password, generate_token, require_auth, password_complexity, find_or_create_oauth_user, generate_reset_token
+from utils.email_utils import send_password_reset_email
+from datetime import datetime, timedelta, timezone
 
 auth_bp = Blueprint('auth', __name__, url_prefix='/api/auth')
 
@@ -216,3 +218,87 @@ def facebook_callback():
 
     except Exception as e:
         return jsonify({'error': f'OAuth authentication failed: {str(e)}'}), 400
+
+
+@auth_bp.route('/forgot-password', methods=['POST'])
+def forgot_password():
+    """Request password reset email"""
+    data = request.get_json()
+
+    if not data or not data.get('email'):
+        return jsonify({'error': 'Email is required'}), 400
+
+    email = data['email']
+
+    # Find user by email
+    user = User.query.filter_by(email=email).first()
+
+    # Always return success to prevent email enumeration
+    if not user:
+        return jsonify({'message': 'If an account with that email exists, a password reset link has been sent'}), 200
+
+    # Check if user is OAuth-only
+    if not user.password_hash:
+        return jsonify({'message': 'If an account with that email exists, a password reset link has been sent'}), 200
+
+    # Generate reset token
+    reset_token = generate_reset_token()
+    user.reset_token = reset_token
+    user.reset_token_expires = datetime.now(timezone.utc) + timedelta(hours=1)
+    db.session.commit()
+
+    # Send email
+    email_sent = send_password_reset_email(user.email, reset_token)
+
+    if not email_sent:
+        return jsonify({'error': 'Failed to send reset email. Please try again later.'}), 500
+
+    return jsonify({'message': 'If an account with that email exists, a password reset link has been sent'}), 200
+
+
+@auth_bp.route('/reset-password', methods=['POST'])
+def reset_password():
+    """Reset password with token"""
+    data = request.get_json()
+
+    if not data or not all(k in data for k in ('token', 'password')):
+        return jsonify({'error': 'Token and password are required'}), 400
+
+    token = data['token']
+    new_password = data['password']
+
+    # Validate password
+    if len(new_password) < 8:
+        return jsonify({'error': 'Password must be at least 8 characters'}), 400
+
+    if len(new_password) > 128:
+        return jsonify({'error': 'Password is too long'}), 400
+
+    if not password_complexity(new_password):
+        return jsonify({'error': 'Password requires a lowercase, uppercase and special character'}), 400
+
+    # Find user by token
+    user = User.query.filter_by(reset_token=token).first()
+
+    if not user:
+        return jsonify({'error': 'Invalid or expired reset token'}), 400
+
+    # Check if token is expired
+    if not user.reset_token_expires:
+        return jsonify({'error': 'Invalid or expired reset token'}), 400
+
+    # Ensure timezone-aware comparison
+    token_expiry = user.reset_token_expires
+    if token_expiry.tzinfo is None:
+        token_expiry = token_expiry.replace(tzinfo=timezone.utc)
+
+    if token_expiry < datetime.now(timezone.utc):
+        return jsonify({'error': 'Invalid or expired reset token'}), 400
+
+    # Reset password
+    user.password_hash = hash_password(new_password)
+    user.reset_token = None
+    user.reset_token_expires = None
+    db.session.commit()
+
+    return jsonify({'message': 'Password successfully reset. You can now log in with your new password.'}), 200

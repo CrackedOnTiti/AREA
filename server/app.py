@@ -88,6 +88,11 @@ app.register_blueprint(connections_bp)
 def demo():
     return send_from_directory('static', 'demo.html')
 
+# Serve favicon
+@app.route('/favicon.ico')
+def favicon():
+    return send_from_directory('static', 'favicon.gif', mimetype='image/gif')
+
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()

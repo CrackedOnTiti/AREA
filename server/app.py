@@ -73,14 +73,6 @@ oauth.register(
     }
 )
 
-# create tables (basically mkdir -p)
-with app.app_context():
-    db.create_all()
-    print("Database tables initialized")
-
-    # Seed initial services (Timer, Email, System)
-    seed_all()
-
 # Initialize scheduler
 init_scheduler(app)
 
@@ -100,5 +92,10 @@ def demo():
     return send_from_directory('static', 'demo.html')
 
 if __name__ == '__main__':
+    with app.app_context():
+        db.create_all()
+        print("Database tables initialized")
+        seed_all()
+
     print("Starting Flask server on port 8080...")
     app.run(host='0.0.0.0', port=8080, debug=True)

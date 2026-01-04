@@ -1,5 +1,6 @@
 import jwt
 import bcrypt
+import secrets
 from datetime import datetime, timedelta, timezone
 from functools import wraps
 from flask import request, jsonify
@@ -90,6 +91,11 @@ def password_complexity(password):
             if lower and upper and special:
                 return True
     return False
+
+
+def generate_reset_token():
+    """Generate a secure random token for password reset"""
+    return secrets.token_urlsafe(32)
 
 
 def find_or_create_oauth_user(provider, provider_user_id, email, name=None):

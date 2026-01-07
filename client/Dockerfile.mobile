@@ -1,13 +1,72 @@
-FROM node:18-alpine
+# Use Ubuntu as base for Flutter
+FROM ubuntu:22.04
 
+# Prevent interactive prompts during package installation
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Install dependencies
+RUN apt-get update && apt-get install -y \
+    curl \
+    git \
+    unzip \
+    xz-utils \
+    zip \
+    libglu1-mesa \
+    openjdk-17-jdk \
+    wget \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set up environment variables
+ENV JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
+ENV ANDROID_SDK_ROOT=/opt/android-sdk
+ENV FLUTTER_HOME=/opt/flutter
+ENV PATH="$FLUTTER_HOME/bin:$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$ANDROID_SDK_ROOT/platform-tools:$PATH"
+
+# Install Android SDK Command Line Tools
+RUN mkdir -p $ANDROID_SDK_ROOT/cmdline-tools && \
+    cd $ANDROID_SDK_ROOT/cmdline-tools && \
+    wget -q https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip && \
+    unzip commandlinetools-linux-9477386_latest.zip && \
+    rm commandlinetools-linux-9477386_latest.zip && \
+    mv cmdline-tools latest
+
+# Accept Android licenses and install required SDK components
+RUN yes | sdkmanager --licenses && \
+    sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0"
+
+# Install Flutter (pinned to stable 3.24.5 to avoid Gradle compatibility issues)
+RUN git clone https://github.com/flutter/flutter.git -b stable --depth 1 $FLUTTER_HOME && \
+    cd $FLUTTER_HOME && \
+    git fetch --tags && \
+    git checkout 3.24.5 && \
+    flutter doctor -v && \
+    flutter config --no-analytics
+
+# Set working directory
 WORKDIR /app
 
-RUN npm install -g react-native-cli
+# Copy Flutter project
+COPY apk/ /app/
 
-# Placeholder
-# Eventually: Copy package.json and install dependencies; Build the Android APK; Output to /build volume
-# ... Hopefully at least ;-;
+# Create local.properties for Flutter
+RUN echo "flutter.sdk=$FLUTTER_HOME" > /app/android/local.properties && \
+    echo "sdk.dir=$ANDROID_SDK_ROOT" >> /app/android/local.properties
 
-RUN echo "React Native Mobile Client"
+# Get Flutter dependencies
+RUN flutter pub get
 
-CMD ["echo", "APK should be here"]
+# Configure Gradle for limited memory environment
+RUN mkdir -p /root/.gradle && \
+    echo "org.gradle.jvmargs=-Xmx1024m -XX:MaxMetaspaceSize=256m -XX:+UseSerialGC" > /root/.gradle/gradle.properties && \
+    echo "org.gradle.daemon=false" >> /root/.gradle/gradle.properties && \
+    echo "org.gradle.parallel=false" >> /root/.gradle/gradle.properties
+
+# Build the APK (debug mode - shows errors on screen)
+RUN flutter build apk --debug
+
+# Create output directory and copy APK
+RUN mkdir -p /build && \
+    cp build/app/outputs/flutter-apk/app-debug.apk /build/client.apk
+
+# Default command
+CMD ["echo", "APK built successfully at /build/client.apk"]

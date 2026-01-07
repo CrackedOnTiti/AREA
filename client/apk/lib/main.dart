@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'screens/register_screen.dart';
 
 void main() {
   runApp(MyApp());
@@ -168,7 +169,10 @@ class LoginScreen extends StatelessWidget {
           cursor: SystemMouseCursors.click,
           child: GestureDetector(
             onTap: () {
-              print('Footer links pressed');
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => RegisterScreen()),
+              );
             },
             child: Text(
               'Create a Account | Forgot password',

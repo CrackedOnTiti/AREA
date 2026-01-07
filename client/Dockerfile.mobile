@@ -55,6 +55,9 @@ RUN echo "flutter.sdk=$FLUTTER_HOME" > /app/android/local.properties && \
 # Get Flutter dependencies
 RUN flutter pub get
 
+# Clean any corrupted build cache
+RUN flutter clean
+
 # Configure Gradle for limited memory environment
 RUN mkdir -p /root/.gradle && \
     echo "org.gradle.jvmargs=-Xmx1024m -XX:MaxMetaspaceSize=256m -XX:+UseSerialGC" > /root/.gradle/gradle.properties && \

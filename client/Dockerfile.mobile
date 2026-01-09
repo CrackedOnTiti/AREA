@@ -58,18 +58,18 @@ RUN flutter pub get
 # Clean any corrupted build cache
 RUN flutter clean
 
-# Configure Gradle for limited memory environment
+# Configure Gradle with more memory for faster builds
 RUN mkdir -p /root/.gradle && \
-    echo "org.gradle.jvmargs=-Xmx1024m -XX:MaxMetaspaceSize=256m -XX:+UseSerialGC" > /root/.gradle/gradle.properties && \
+    echo "org.gradle.jvmargs=-Xmx4096m -XX:MaxMetaspaceSize=1024m -XX:+UseSerialGC" > /root/.gradle/gradle.properties && \
     echo "org.gradle.daemon=false" >> /root/.gradle/gradle.properties && \
     echo "org.gradle.parallel=false" >> /root/.gradle/gradle.properties
 
 # Build the APK (debug mode - shows errors on screen)
-RUN flutter build apk --debug
+RUN flutter build apk --release
 
 # Create output directory and copy APK
 RUN mkdir -p /build && \
-    cp build/app/outputs/flutter-apk/app-debug.apk /build/client.apk
+    cp build/app/outputs/flutter-apk/app-release.apk /build/client.apk
 
 # Default command
 CMD ["echo", "APK built successfully at /build/client.apk"]

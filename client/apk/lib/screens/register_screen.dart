@@ -73,13 +73,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
+      resizeToAvoidBottomInset: false,
       body: SafeArea(
         child: Column(
           children: [
             Expanded(
-              child: Center(
+              child: SingleChildScrollView(
                 child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 40),
+                  padding: EdgeInsets.symmetric(horizontal: 40, vertical: 40),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [

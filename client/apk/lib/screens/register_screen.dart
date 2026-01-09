@@ -12,11 +12,11 @@ class RegisterScreen extends StatelessWidget {
             Expanded(
               child: Center(
                 child: Padding(
-                  padding: EdgeInsets.all(40),
-                  child: Row(
+                  padding: EdgeInsets.symmetric(horizontal: 40),
+                  child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      // AREA box on left
+                      // AREA logo
                       Transform.scale(
                         scale: 1.5,
                         child: Container(
@@ -36,144 +36,122 @@ class RegisterScreen extends StatelessWidget {
                           ),
                         ),
                       ),
-                      SizedBox(width: 60),
+                      SizedBox(height: 40),
 
-                      // Register form on right
-                      Expanded(
-                        child: Stack(
-                          children: [
-                            Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                // Username field
-                                TextField(
-                                  style: TextStyle(color: Colors.white),
-                                  decoration: InputDecoration(
-                                    hintText: 'Username',
-                                    hintStyle: TextStyle(color: Colors.grey),
-                                    enabledBorder: UnderlineInputBorder(
-                                      borderSide: BorderSide(color: Colors.white),
-                                    ),
-                                    focusedBorder: UnderlineInputBorder(
-                                      borderSide: BorderSide(color: Colors.white),
-                                    ),
-                                  ),
-                                ),
-                                SizedBox(height: 20),
+                      // Username field
+                      TextField(
+                        style: TextStyle(color: Colors.white),
+                        decoration: InputDecoration(
+                          hintText: 'Username',
+                          hintStyle: TextStyle(color: Colors.grey),
+                          enabledBorder: UnderlineInputBorder(
+                            borderSide: BorderSide(color: Colors.white),
+                          ),
+                          focusedBorder: UnderlineInputBorder(
+                            borderSide: BorderSide(color: Colors.white),
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 20),
 
-                                // Email field
-                                TextField(
-                                  style: TextStyle(color: Colors.white),
-                                  decoration: InputDecoration(
-                                    hintText: 'Email',
-                                    hintStyle: TextStyle(color: Colors.grey),
-                                    enabledBorder: UnderlineInputBorder(
-                                      borderSide: BorderSide(color: Colors.white),
-                                    ),
-                                    focusedBorder: UnderlineInputBorder(
-                                      borderSide: BorderSide(color: Colors.white),
-                                    ),
-                                  ),
-                                ),
-                                SizedBox(height: 20),
+                      // Email field
+                      TextField(
+                        style: TextStyle(color: Colors.white),
+                        decoration: InputDecoration(
+                          hintText: 'Email',
+                          hintStyle: TextStyle(color: Colors.grey),
+                          enabledBorder: UnderlineInputBorder(
+                            borderSide: BorderSide(color: Colors.white),
+                          ),
+                          focusedBorder: UnderlineInputBorder(
+                            borderSide: BorderSide(color: Colors.white),
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 20),
 
-                                // Password field
-                                TextField(
-                                  obscureText: true,
-                                  style: TextStyle(color: Colors.white),
-                                  decoration: InputDecoration(
-                                    hintText: 'Password',
-                                    hintStyle: TextStyle(color: Colors.grey),
-                                    enabledBorder: UnderlineInputBorder(
-                                      borderSide: BorderSide(color: Colors.white),
-                                    ),
-                                    focusedBorder: UnderlineInputBorder(
-                                      borderSide: BorderSide(color: Colors.white),
-                                    ),
-                                  ),
-                                ),
-                                SizedBox(height: 20),
+                      // Password field
+                      TextField(
+                        obscureText: true,
+                        style: TextStyle(color: Colors.white),
+                        decoration: InputDecoration(
+                          hintText: 'Password',
+                          hintStyle: TextStyle(color: Colors.grey),
+                          enabledBorder: UnderlineInputBorder(
+                            borderSide: BorderSide(color: Colors.white),
+                          ),
+                          focusedBorder: UnderlineInputBorder(
+                            borderSide: BorderSide(color: Colors.white),
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 20),
 
-                                // Confirm Password field
-                                TextField(
-                                  obscureText: true,
-                                  style: TextStyle(color: Colors.white),
-                                  decoration: InputDecoration(
-                                    hintText: 'Confirm Password',
-                                    hintStyle: TextStyle(color: Colors.grey),
-                                    enabledBorder: UnderlineInputBorder(
-                                      borderSide: BorderSide(color: Colors.white),
-                                    ),
-                                    focusedBorder: UnderlineInputBorder(
-                                      borderSide: BorderSide(color: Colors.white),
-                                    ),
-                                  ),
-                                ),
-                                SizedBox(height: 40),
+                      // Confirm Password field
+                      TextField(
+                        obscureText: true,
+                        style: TextStyle(color: Colors.white),
+                        decoration: InputDecoration(
+                          hintText: 'Confirm Password',
+                          hintStyle: TextStyle(color: Colors.grey),
+                          enabledBorder: UnderlineInputBorder(
+                            borderSide: BorderSide(color: Colors.white),
+                          ),
+                          focusedBorder: UnderlineInputBorder(
+                            borderSide: BorderSide(color: Colors.white),
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 30),
 
-                                // Register button
-                                ElevatedButton(
-                                  onPressed: () {
-                                    print('Register pressed');
-                                  },
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.white,
-                                    foregroundColor: Colors.black,
-                                    minimumSize: Size(double.infinity, 50),
-                                  ),
-                                  child: Text('Register', style: TextStyle(fontSize: 18)),
-                                ),
-                              ],
-                            ),
-
-                            // OAuth icons - positioned independently
-                            Positioned(
-                              bottom: 190,
-                              left: 0,
-                              right: 0,
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  MouseRegion(
-                                    cursor: SystemMouseCursors.click,
-                                    child: GestureDetector(
-                                      onTap: () {
-                                        print('Google register pressed');
-                                      },
-                                      child: Opacity(
-                                        opacity: 1.0,
-                                        child: Image.asset(
-                                          'assets/google-icon.png',
-                                          width: 50,
-                                          height: 50,
-                                          filterQuality: FilterQuality.high,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                  SizedBox(width: 20),
-                                  MouseRegion(
-                                    cursor: SystemMouseCursors.click,
-                                    child: GestureDetector(
-                                      onTap: () {
-                                        print('Facebook register pressed');
-                                      },
-                                      child: Opacity(
-                                        opacity: 1.0,
-                                        child: Image.asset(
-                                          'assets/facebook-icon.png',
-                                          width: 50,
-                                          height: 50,
-                                          filterQuality: FilterQuality.high,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ],
+                      // OAuth icons (horizontal)
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          MouseRegion(
+                            cursor: SystemMouseCursors.click,
+                            child: GestureDetector(
+                              onTap: () {
+                                print('Google register pressed');
+                              },
+                              child: Image.asset(
+                                'assets/google-icon.png',
+                                width: 50,
+                                height: 50,
+                                filterQuality: FilterQuality.high,
                               ),
                             ),
-                          ],
+                          ),
+                          SizedBox(width: 20),
+                          MouseRegion(
+                            cursor: SystemMouseCursors.click,
+                            child: GestureDetector(
+                              onTap: () {
+                                print('Facebook register pressed');
+                              },
+                              child: Image.asset(
+                                'assets/facebook-icon.png',
+                                width: 50,
+                                height: 50,
+                                filterQuality: FilterQuality.high,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 30),
+
+                      // Register button
+                      ElevatedButton(
+                        onPressed: () {
+                          print('Register pressed');
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.white,
+                          foregroundColor: Colors.black,
+                          minimumSize: Size(double.infinity, 50),
                         ),
+                        child: Text('Register', style: TextStyle(fontSize: 18)),
                       ),
                     ],
                   ),

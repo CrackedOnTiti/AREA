@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'screens/register_screen.dart';
+import 'services/api_service.dart';
 
 void main() {
   runApp(MyApp());
@@ -16,7 +17,56 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class LoginScreen extends StatelessWidget {
+class LoginScreen extends StatefulWidget {
+  @override
+  _LoginScreenState createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<LoginScreen> {
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  bool _isLoading = false;
+  String? _errorMessage;
+
+  Future<void> _handleLogin() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    final email = _emailController.text.trim();
+    final password = _passwordController.text;
+
+    if (email.isEmpty || password.isEmpty) {
+      setState(() {
+        _isLoading = false;
+        _errorMessage = 'Please enter email and password';
+      });
+      return;
+    }
+
+    final result = await ApiService.login(email, password);
+
+    setState(() {
+      _isLoading = false;
+    });
+
+    if (result['success']) {
+      // TODO: Navigate to home screen and save token
+      print('Login successful! Token: ${result['token']}');
+      print('User: ${result['user']}');
+
+      // Show success message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Login successful!'), backgroundColor: Colors.green),
+      );
+    } else {
+      setState(() {
+        _errorMessage = result['error'];
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -55,7 +105,9 @@ class LoginScreen extends StatelessWidget {
 
                       // Email field
                       TextField(
+                        controller: _emailController,
                         style: TextStyle(color: Colors.white),
+                        keyboardType: TextInputType.emailAddress,
                         decoration: InputDecoration(
                           hintText: 'Email',
                           hintStyle: TextStyle(color: Colors.grey),
@@ -71,6 +123,7 @@ class LoginScreen extends StatelessWidget {
 
                       // Password field
                       TextField(
+                        controller: _passwordController,
                         obscureText: true,
                         style: TextStyle(color: Colors.white),
                         decoration: InputDecoration(
@@ -84,7 +137,19 @@ class LoginScreen extends StatelessWidget {
                           ),
                         ),
                       ),
-                      SizedBox(height: 30),
+                      SizedBox(height: 10),
+
+                      // Error message
+                      if (_errorMessage != null)
+                        Padding(
+                          padding: EdgeInsets.only(bottom: 10),
+                          child: Text(
+                            _errorMessage!,
+                            style: TextStyle(color: Colors.red, fontSize: 14),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      SizedBox(height: 20),
 
                       // OAuth icons (horizontal)
                       Row(
@@ -125,15 +190,22 @@ class LoginScreen extends StatelessWidget {
 
                       // Login button
                       ElevatedButton(
-                        onPressed: () {
-                          print('Login pressed');
-                        },
+                        onPressed: _isLoading ? null : _handleLogin,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.white,
                           foregroundColor: Colors.black,
                           minimumSize: Size(double.infinity, 50),
                         ),
-                        child: Text('Login', style: TextStyle(fontSize: 18)),
+                        child: _isLoading
+                            ? SizedBox(
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  valueColor: AlwaysStoppedAnimation<Color>(Colors.black),
+                                ),
+                              )
+                            : Text('Login', style: TextStyle(fontSize: 18)),
                       ),
                     ],
                   ),
@@ -148,7 +220,11 @@ class LoginScreen extends StatelessWidget {
             onTap: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => RegisterScreen()),
+                PageRouteBuilder(
+                  pageBuilder: (context, animation, secondaryAnimation) => RegisterScreen(),
+                  transitionDuration: Duration.zero,
+                  reverseTransitionDuration: Duration.zero,
+                ),
               );
             },
             child: Text(

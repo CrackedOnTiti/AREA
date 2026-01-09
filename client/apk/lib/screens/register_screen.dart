@@ -1,7 +1,74 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../services/api_service.dart';
 
-class RegisterScreen extends StatelessWidget {
+class RegisterScreen extends StatefulWidget {
+  @override
+  _RegisterScreenState createState() => _RegisterScreenState();
+}
+
+class _RegisterScreenState extends State<RegisterScreen> {
+  final TextEditingController _usernameController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _confirmPasswordController = TextEditingController();
+  bool _isLoading = false;
+  String? _errorMessage;
+
+  Future<void> _handleRegister() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    final username = _usernameController.text.trim();
+    final email = _emailController.text.trim();
+    final password = _passwordController.text;
+    final confirmPassword = _confirmPasswordController.text;
+
+    if (username.isEmpty || email.isEmpty || password.isEmpty || confirmPassword.isEmpty) {
+      setState(() {
+        _isLoading = false;
+        _errorMessage = 'Please fill all fields';
+      });
+      return;
+    }
+
+    if (password != confirmPassword) {
+      setState(() {
+        _isLoading = false;
+        _errorMessage = 'Passwords do not match';
+      });
+      return;
+    }
+
+    final result = await ApiService.register(username, email, password);
+
+    setState(() {
+      _isLoading = false;
+    });
+
+    if (result['success']) {
+      // TODO: Navigate to home screen and save token
+      print('Registration successful! Token: ${result['token']}');
+      print('User: ${result['user']}');
+
+      // Show success message and go back to login
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Registration successful!'), backgroundColor: Colors.green),
+      );
+
+      // Go back to login screen after a short delay
+      Future.delayed(Duration(seconds: 1), () {
+        Navigator.pop(context);
+      });
+    } else {
+      setState(() {
+        _errorMessage = result['error'];
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -40,6 +107,7 @@ class RegisterScreen extends StatelessWidget {
 
                       // Username field
                       TextField(
+                        controller: _usernameController,
                         style: TextStyle(color: Colors.white),
                         decoration: InputDecoration(
                           hintText: 'Username',
@@ -56,7 +124,9 @@ class RegisterScreen extends StatelessWidget {
 
                       // Email field
                       TextField(
+                        controller: _emailController,
                         style: TextStyle(color: Colors.white),
+                        keyboardType: TextInputType.emailAddress,
                         decoration: InputDecoration(
                           hintText: 'Email',
                           hintStyle: TextStyle(color: Colors.grey),
@@ -72,6 +142,7 @@ class RegisterScreen extends StatelessWidget {
 
                       // Password field
                       TextField(
+                        controller: _passwordController,
                         obscureText: true,
                         style: TextStyle(color: Colors.white),
                         decoration: InputDecoration(
@@ -89,6 +160,7 @@ class RegisterScreen extends StatelessWidget {
 
                       // Confirm Password field
                       TextField(
+                        controller: _confirmPasswordController,
                         obscureText: true,
                         style: TextStyle(color: Colors.white),
                         decoration: InputDecoration(
@@ -102,7 +174,19 @@ class RegisterScreen extends StatelessWidget {
                           ),
                         ),
                       ),
-                      SizedBox(height: 30),
+                      SizedBox(height: 10),
+
+                      // Error message
+                      if (_errorMessage != null)
+                        Padding(
+                          padding: EdgeInsets.only(bottom: 10),
+                          child: Text(
+                            _errorMessage!,
+                            style: TextStyle(color: Colors.red, fontSize: 14),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      SizedBox(height: 20),
 
                       // OAuth icons (horizontal)
                       Row(
@@ -143,15 +227,22 @@ class RegisterScreen extends StatelessWidget {
 
                       // Register button
                       ElevatedButton(
-                        onPressed: () {
-                          print('Register pressed');
-                        },
+                        onPressed: _isLoading ? null : _handleRegister,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.white,
                           foregroundColor: Colors.black,
                           minimumSize: Size(double.infinity, 50),
                         ),
-                        child: Text('Register', style: TextStyle(fontSize: 18)),
+                        child: _isLoading
+                            ? SizedBox(
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  valueColor: AlwaysStoppedAnimation<Color>(Colors.black),
+                                ),
+                              )
+                            : Text('Register', style: TextStyle(fontSize: 18)),
                       ),
                     ],
                   ),

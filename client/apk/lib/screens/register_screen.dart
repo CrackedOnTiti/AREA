@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../services/api_service.dart';
+import '../services/storage_service.dart';
+import 'home_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
   @override
@@ -49,19 +51,22 @@ class _RegisterScreenState extends State<RegisterScreen> {
     });
 
     if (result['success']) {
-      // TODO: Navigate to home screen and save token
-      print('Registration successful! Token: ${result['token']}');
-      print('User: ${result['user']}');
+      // Save token and user data
+      await StorageService.saveToken(result['token']);
+      final user = result['user'];
+      await StorageService.saveUserData(user['username'], user['email']);
 
-      // Show success message and go back to login
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Registration successful!'), backgroundColor: Colors.green),
-      );
-
-      // Go back to login screen after a short delay
-      Future.delayed(Duration(seconds: 1), () {
-        Navigator.pop(context);
-      });
+      // Navigate to home
+      if (mounted) {
+        Navigator.pushReplacement(
+          context,
+          PageRouteBuilder(
+            pageBuilder: (context, animation, secondaryAnimation) => HomeScreen(),
+            transitionDuration: Duration.zero,
+            reverseTransitionDuration: Duration.zero,
+          ),
+        );
+      }
     } else {
       setState(() {
         _errorMessage = result['error'];

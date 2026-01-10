@@ -1,11 +1,19 @@
 import 'package:flutter/material.dart';
 import '../services/storage_service.dart';
+import '../main.dart';
 
 class HomeScreen extends StatelessWidget {
   Future<void> _handleLogout(BuildContext context) async {
     await StorageService.deleteToken();
     if (context.mounted) {
-      Navigator.of(context).pushReplacementNamed('/');
+      Navigator.pushReplacement(
+        context,
+        PageRouteBuilder(
+          pageBuilder: (context, animation, secondaryAnimation) => LoginScreen(),
+          transitionDuration: Duration.zero,
+          reverseTransitionDuration: Duration.zero,
+        ),
+      );
     }
   }
 

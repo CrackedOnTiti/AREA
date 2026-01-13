@@ -138,6 +138,22 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
       ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          print('Create workflow pressed');
+          // TODO: Navigate to workflow creation screen
+        },
+        backgroundColor: Colors.white,
+        shape: CircleBorder(),
+        child: Text(
+          '+',
+          style: TextStyle(
+            color: Colors.black,
+            fontSize: 36,
+            fontWeight: FontWeight.w300,
+          ),
+        ),
+      ),
       body: SafeArea(
         child: Column(
           children: [

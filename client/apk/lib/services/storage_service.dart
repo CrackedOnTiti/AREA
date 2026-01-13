@@ -3,6 +3,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 class StorageService {
   static const String _tokenKey = 'auth_token';
   static const String _userKey = 'user_data';
+  static const String _serverIpKey = 'server_ip';
+  static const String _defaultIp = '10.102.254.28:8080';
 
   // Save authentication token
   static Future<void> saveToken(String token) async {
@@ -46,5 +48,17 @@ class StorageService {
       }
     }
     return null;
+  }
+
+  // Save server IP
+  static Future<void> saveServerIp(String ip) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_serverIpKey, ip);
+  }
+
+  // Get server IP (returns default if not set)
+  static Future<String> getServerIp() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_serverIpKey) ?? _defaultIp;
   }
 }

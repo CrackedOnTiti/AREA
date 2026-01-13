@@ -221,10 +221,11 @@ class _HomeScreenState extends State<HomeScreen> {
           // Top header container (no SafeArea to stick to very top)
           Container(
               width: double.infinity,
+              height: 80,
               padding: EdgeInsets.only(
                 left: 20,
                 right: 20,
-                top: MediaQuery.of(context).padding.top + 15,
+                top: 15,
                 bottom: 15,
               ),
               decoration: BoxDecoration(
@@ -233,6 +234,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   // AREA logo on the left
                   Container(

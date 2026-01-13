@@ -1,13 +1,18 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'storage_service.dart';
 
 class ApiService {
-  // Replace with your PC's local IP
-  static const String baseUrl = 'http://192.168.0.101:8080/api';
+  // Get base URL with stored IP
+  static Future<String> getBaseUrl() async {
+    final serverIp = await StorageService.getServerIp();
+    return 'http://$serverIp/api';
+  }
 
   // Login endpoint
   static Future<Map<String, dynamic>> login(String email, String password) async {
     try {
+      final baseUrl = await getBaseUrl();
       final response = await http.post(
         Uri.parse('$baseUrl/auth/login'),
         headers: {'Content-Type': 'application/json'},
@@ -46,6 +51,7 @@ class ApiService {
     String password,
   ) async {
     try {
+      final baseUrl = await getBaseUrl();
       final response = await http.post(
         Uri.parse('$baseUrl/auth/register'),
         headers: {'Content-Type': 'application/json'},
@@ -81,6 +87,7 @@ class ApiService {
   // Get current user (with auth token)
   static Future<Map<String, dynamic>> getCurrentUser(String token) async {
     try {
+      final baseUrl = await getBaseUrl();
       final response = await http.get(
         Uri.parse('$baseUrl/auth/me'),
         headers: {

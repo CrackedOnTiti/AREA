@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../services/storage_service.dart';
 import '../services/api_service.dart';
 import 'login_screen.dart';
+import 'home_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   @override
@@ -140,17 +141,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 SizedBox(height: 20),
 
                 // Services Section
-                GestureDetector(
+                InkWell(
                   onTap: () {
                     print('Services tapped');
                     // TODO: Navigate to services screen
                   },
-                  child: Text(
-                    'Services',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
+                  child: Padding(
+                    padding: EdgeInsets.all(10),
+                    child: Text(
+                      'Services',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                 ),
@@ -161,16 +165,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 SizedBox(height: 20),
 
                 // Profile Section
-                GestureDetector(
+                InkWell(
                   onTap: () {
                     Navigator.pop(context); // Close drawer, already on profile
                   },
-                  child: Text(
-                    'Profile',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
+                  child: Padding(
+                    padding: EdgeInsets.all(10),
+                    child: Text(
+                      'Profile',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                 ),
@@ -217,9 +224,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                // AREA logo on the left - tap to go back to dashboard
+                // AREA logo on the left - tap to go to dashboard and reload
                 GestureDetector(
-                  onTap: () => Navigator.pop(context),
+                  onTap: () {
+                    Navigator.pushAndRemoveUntil(
+                      context,
+                      MaterialPageRoute(builder: (context) => HomeScreen()),
+                      (route) => false,
+                    );
+                  },
                   child: Container(
                     padding: EdgeInsets.symmetric(horizontal: 3, vertical: 3),
                     decoration: BoxDecoration(

@@ -143,17 +143,20 @@ class _HomeScreenState extends State<HomeScreen> {
                 SizedBox(height: 20),
 
                 // Services Section
-                GestureDetector(
+                InkWell(
                   onTap: () {
                     print('Services tapped');
                     // TODO: Navigate to services screen
                   },
-                  child: Text(
-                    'Services',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
+                  child: Padding(
+                    padding: EdgeInsets.all(10),
+                    child: Text(
+                      'Services',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                 ),
@@ -164,19 +167,22 @@ class _HomeScreenState extends State<HomeScreen> {
                 SizedBox(height: 20),
 
                 // Profile Section
-                GestureDetector(
+                InkWell(
                   onTap: () {
                     Navigator.push(
                       context,
                       MaterialPageRoute(builder: (context) => ProfileScreen()),
                     );
                   },
-                  child: Text(
-                    'Profile',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
+                  child: Padding(
+                    padding: EdgeInsets.all(10),
+                    child: Text(
+                      'Profile',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                 ),
@@ -239,20 +245,23 @@ class _HomeScreenState extends State<HomeScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  // AREA logo on the left
-                  Container(
-                    padding: EdgeInsets.symmetric(horizontal: 3, vertical: 3),
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Colors.white, width: 2),
-                    ),
-                    child: Text(
-                      'AR\nEA',
-                      style: GoogleFonts.russoOne(
-                        fontSize: 20,
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        height: 0.8,
-                        letterSpacing: 2,
+                  // AREA logo on the left - tap to reload dashboard
+                  GestureDetector(
+                    onTap: () => _loadDashboardStats(),
+                    child: Container(
+                      padding: EdgeInsets.symmetric(horizontal: 3, vertical: 3),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.white, width: 2),
+                      ),
+                      child: Text(
+                        'AR\nEA',
+                        style: GoogleFonts.russoOne(
+                          fontSize: 20,
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          height: 0.8,
+                          letterSpacing: 2,
+                        ),
                       ),
                     ),
                   ),

@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../services/storage_service.dart';
 import '../services/api_service.dart';
 import 'login_screen.dart';
+import 'profile_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -165,8 +166,10 @@ class _HomeScreenState extends State<HomeScreen> {
                 // Profile Section
                 GestureDetector(
                   onTap: () {
-                    print('Profile tapped');
-                    // TODO: Navigate to profile screen
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => ProfileScreen()),
+                    );
                   },
                   child: Text(
                     'Profile',

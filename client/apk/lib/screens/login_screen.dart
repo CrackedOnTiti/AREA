@@ -63,6 +63,63 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
+  Future<void> _showIpDialog() async {
+    final currentIp = await StorageService.getServerIp();
+    final ipController = TextEditingController(text: currentIp);
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: Colors.black,
+          title: Text(
+            'Server IP Configuration',
+            style: TextStyle(color: Colors.white),
+          ),
+          content: TextField(
+            controller: ipController,
+            style: TextStyle(color: Colors.white),
+            decoration: InputDecoration(
+              hintText: 'Enter server IP:port',
+              hintStyle: TextStyle(color: Colors.grey),
+              enabledBorder: OutlineInputBorder(
+                borderSide: BorderSide(color: Colors.white),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderSide: BorderSide(color: Colors.white, width: 2),
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text('Cancel', style: TextStyle(color: Colors.grey)),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                await StorageService.saveServerIp(ipController.text.trim());
+                if (context.mounted) {
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Server IP updated to ${ipController.text.trim()}'),
+                      backgroundColor: Colors.green,
+                    ),
+                  );
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.white,
+                foregroundColor: Colors.black,
+              ),
+              child: Text('Save'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -209,6 +266,23 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
               ),
             ),
+      // IP issues button
+      Padding(
+        padding: EdgeInsets.only(bottom: 10),
+        child: GestureDetector(
+          onTap: _showIpDialog,
+          child: Text(
+            'IP issues?',
+            style: TextStyle(
+              color: Colors.grey,
+              fontSize: 12,
+              fontWeight: FontWeight.w300,
+              decoration: TextDecoration.underline,
+              decorationColor: Colors.grey.withOpacity(0),
+            ),
+          ),
+        ),
+      ),
       Padding(
         padding: EdgeInsets.only(bottom: 20),
         child: MouseRegion(

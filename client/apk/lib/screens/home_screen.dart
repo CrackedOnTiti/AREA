@@ -10,12 +10,36 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-  final TextEditingController _ipController = TextEditingController(text: '192.168.0.101:8080');
+  final TextEditingController _ipController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _loadServerIp();
+  }
+
+  Future<void> _loadServerIp() async {
+    final ip = await StorageService.getServerIp();
+    _ipController.text = ip;
+  }
 
   @override
   void dispose() {
     _ipController.dispose();
     super.dispose();
+  }
+
+  Future<void> _saveServerIp() async {
+    await StorageService.saveServerIp(_ipController.text.trim());
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Server IP updated to ${_ipController.text.trim()}'),
+          backgroundColor: Colors.green,
+          duration: Duration(seconds: 2),
+        ),
+      );
+    }
   }
 
   Future<void> _handleLogout(BuildContext context) async {
@@ -72,6 +96,16 @@ class _HomeScreenState extends State<HomeScreen> {
                       borderSide: BorderSide(color: Colors.white, width: 2),
                     ),
                   ),
+                ),
+                SizedBox(height: 10),
+                ElevatedButton(
+                  onPressed: _saveServerIp,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    foregroundColor: Colors.black,
+                    minimumSize: Size(double.infinity, 40),
+                  ),
+                  child: Text('Save IP'),
                 ),
                 SizedBox(height: 20),
 

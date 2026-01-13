@@ -116,4 +116,74 @@ class ApiService {
       };
     }
   }
+
+  // Get dashboard stats
+  static Future<Map<String, dynamic>> getDashboardStats(String token) async {
+    try {
+      final baseUrl = await getBaseUrl();
+
+      // Fetch total workflows
+      final totalResponse = await http.get(
+        Uri.parse('$baseUrl/areas'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+      // Fetch active workflows
+      final activeResponse = await http.get(
+        Uri.parse('$baseUrl/areas?is_active=true'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+      // Fetch connected services
+      final connectionsResponse = await http.get(
+        Uri.parse('$baseUrl/connections'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+      if (totalResponse.statusCode == 200 &&
+          activeResponse.statusCode == 200 &&
+          connectionsResponse.statusCode == 200) {
+
+        final totalData = jsonDecode(totalResponse.body);
+        final activeData = jsonDecode(activeResponse.body);
+        final connectionsData = jsonDecode(connectionsResponse.body);
+
+        // Count connected services
+        int connectedCount = 0;
+        if (connectionsData['connections'] != null) {
+          for (var conn in connectionsData['connections']) {
+            if (conn['is_connected'] == true) {
+              connectedCount++;
+            }
+          }
+        }
+
+        return {
+          'success': true,
+          'total_workflows': totalData['total'] ?? 0,
+          'active_workflows': activeData['total'] ?? 0,
+          'connected_services': connectedCount,
+        };
+      } else {
+        return {
+          'success': false,
+          'error': 'Failed to fetch dashboard stats',
+        };
+      }
+    } catch (e) {
+      return {
+        'success': false,
+        'error': 'Network error: ${e.toString()}',
+      };
+    }
+  }
 }

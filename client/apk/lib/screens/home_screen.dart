@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../services/storage_service.dart';
+import '../services/api_service.dart';
 import 'login_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -12,15 +13,42 @@ class _HomeScreenState extends State<HomeScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final TextEditingController _ipController = TextEditingController();
 
+  int _totalWorkflows = 0;
+  int _activeWorkflows = 0;
+  int _connectedServices = 0;
+  bool _isLoadingStats = true;
+
   @override
   void initState() {
     super.initState();
     _loadServerIp();
+    _loadDashboardStats();
   }
 
   Future<void> _loadServerIp() async {
     final ip = await StorageService.getServerIp();
     _ipController.text = ip;
+  }
+
+  Future<void> _loadDashboardStats() async {
+    final token = await StorageService.getToken();
+    if (token == null) {
+      setState(() => _isLoadingStats = false);
+      return;
+    }
+
+    final result = await ApiService.getDashboardStats(token);
+
+    if (mounted && result['success']) {
+      setState(() {
+        _totalWorkflows = result['total_workflows'];
+        _activeWorkflows = result['active_workflows'];
+        _connectedServices = result['connected_services'];
+        _isLoadingStats = false;
+      });
+    } else {
+      setState(() => _isLoadingStats = false);
+    }
   }
 
   @override
@@ -188,13 +216,17 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
       ),
-      body: SafeArea(
-        child: Column(
-          children: [
-            // Top header container
-            Container(
+      body: Column(
+        children: [
+          // Top header container (no SafeArea to stick to very top)
+          Container(
               width: double.infinity,
-              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+              padding: EdgeInsets.only(
+                left: 20,
+                right: 20,
+                top: MediaQuery.of(context).padding.top + 15,
+                bottom: 15,
+              ),
               decoration: BoxDecoration(
                 color: Colors.black,
                 border: Border.all(color: Colors.white, width: 1),
@@ -253,8 +285,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 ],
               ),
             ),
-            // Rest of the screen
-            Expanded(
+          // Rest of the screen
+          Expanded(
               child: SingleChildScrollView(
                 child: Padding(
                   padding: EdgeInsets.all(20),
@@ -280,14 +312,22 @@ class _HomeScreenState extends State<HomeScreen> {
                               ),
                             ),
                             SizedBox(height: 10),
-                            Text(
-                              '0',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 36,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
+                            _isLoadingStats
+                                ? SizedBox(
+                                    height: 36,
+                                    child: CircularProgressIndicator(
+                                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                : Text(
+                                    '$_totalWorkflows',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 36,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
                           ],
                         ),
                       ),
@@ -313,14 +353,22 @@ class _HomeScreenState extends State<HomeScreen> {
                               ),
                             ),
                             SizedBox(height: 10),
-                            Text(
-                              '0',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 36,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
+                            _isLoadingStats
+                                ? SizedBox(
+                                    height: 36,
+                                    child: CircularProgressIndicator(
+                                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                : Text(
+                                    '$_activeWorkflows',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 36,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
                           ],
                         ),
                       ),
@@ -346,14 +394,22 @@ class _HomeScreenState extends State<HomeScreen> {
                               ),
                             ),
                             SizedBox(height: 10),
-                            Text(
-                              '0',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 36,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
+                            _isLoadingStats
+                                ? SizedBox(
+                                    height: 36,
+                                    child: CircularProgressIndicator(
+                                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                : Text(
+                                    '$_connectedServices',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 36,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
                           ],
                         ),
                       ),

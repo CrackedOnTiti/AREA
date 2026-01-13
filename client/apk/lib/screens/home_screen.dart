@@ -287,10 +287,15 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           // Rest of the screen
           Expanded(
-              child: SingleChildScrollView(
-                child: Padding(
-                  padding: EdgeInsets.all(20),
-                  child: Column(
+              child: RefreshIndicator(
+                onRefresh: _loadDashboardStats,
+                color: Colors.white,
+                backgroundColor: Colors.black,
+                child: SingleChildScrollView(
+                  physics: AlwaysScrollableScrollPhysics(),
+                  child: Padding(
+                    padding: EdgeInsets.all(20),
+                    child: Column(
                     children: [
                       // Total Workflows Card
                       Container(

@@ -3,3 +3,16 @@ __pycache__/
 venv/
 .env
 *.txt
+Docs/
+
+# Node modules
+node_modules/
+
+# Build outputs
+build/
+dist/
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db

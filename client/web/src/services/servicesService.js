@@ -49,7 +49,13 @@ export const getUserConnections = async () => {
 export const connectService = (serviceName) =>
 {
   const token = localStorage.getItem('token');
-  window.location.href = `${API_URL}/api/connections/${serviceName.toLowerCase()}?token=${token}`;
+  if (!token) {
+    console.error('No token found for OAuth connection');
+    return;
+  }
+  
+  // Redirect to the OAuth endpoint with token as query parameter
+  window.location.href = `${API_URL}/api/connections/${serviceName.toLowerCase()}?token=${encodeURIComponent(token)}`;
 };
 
 export const disconnectService = async (serviceName) => {

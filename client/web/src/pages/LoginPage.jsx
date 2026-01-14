@@ -197,7 +197,7 @@ const LoginPage = () =>
         <div className="space-y-3">
           <button
             type="button"
-            onClick={() => window.location.href = 'http://localhost:8080/api/connections/google'}
+            onClick={() => window.location.href = 'http://localhost:8080/api/auth/google/login'}
             className="w-full px-6 py-3 bg-black border border-white text-white rounded-lg hover:bg-gray-900 transition-colors font-medium flex items-center justify-center gap-3"
           >
             <img src={googleIcon} alt="Google" className="w-5 h-5" />
@@ -206,7 +206,7 @@ const LoginPage = () =>
 
           <button
             type="button"
-            onClick={() => window.location.href = 'http://localhost:8080/api/connections/facebook'}
+            onClick={() => window.location.href = 'http://localhost:8080/api/auth/facebook/login'}
             className="w-full px-6 py-3 bg-black border border-white text-white rounded-lg hover:bg-gray-900 transition-colors font-medium flex items-center justify-center gap-3"
           >
             <img src={facebookIcon} alt="Facebook" className="w-5 h-5" />

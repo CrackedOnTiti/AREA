@@ -15,9 +15,22 @@ const ServicesPage = () =>
 
   const isConnected = (serviceName) =>
   {
-    return connections.some(conn =>
-      conn.service_name.toLowerCase() === serviceName.toLowerCase()
+    if (!serviceName) return false;
+    
+    // Find the connection for this service
+    const connection = connections.find(conn => 
+      conn.service_name && conn.service_name.toLowerCase() === serviceName.toLowerCase()
     );
+    
+    // Debug logging
+    console.log(`Checking connection for service: ${serviceName}`, {
+      connectionFound: !!connection,
+      isConnected: connection ? connection.is_connected : false,
+      allConnections: connections.map(c => ({name: c.service_name, connected: c.is_connected}))
+    });
+    
+    // Return the is_connected status from the backend, default to false if not found
+    return connection ? connection.is_connected : false;
   };
 
   const requiresOAuth = (serviceName) =>
@@ -62,7 +75,7 @@ const ServicesPage = () =>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {services.map((service) => (
               <ServiceCard
-                key={service.id}
+                key={service.id || service.name}
                 service={service}
                 isConnected={isConnected(service.name)}
                 requiresOAuth={requiresOAuth(service.name)}

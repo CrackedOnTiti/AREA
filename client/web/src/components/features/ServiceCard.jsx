@@ -7,7 +7,7 @@ const ServiceCard = ({ service, isConnected, requiresOAuth, onConnect }) =>
   return (
     <div className={`${CARD_BASE} flex flex-col`}>
 
-      <ServiceInfo name={service.name} description={service.description} />
+      <ServiceInfo name={service.display_name || service.name} description={service.description} />
 
       <div className="mt-auto">
         {isConnected ? (

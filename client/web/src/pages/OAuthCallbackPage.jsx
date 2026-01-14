@@ -1,30 +1,40 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
-const OAuthCallbackPage = () => {
+const OAuthCallbackPage = () =>
+{
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const [message, setMessage] = useState('Processing connection...');
+  const [message, setMessage] = useState('Processing...');
 
-  useEffect(() => {
+  useEffect(() =>
+  {
     const error = searchParams.get('error');
-    const success = searchParams.get('success');
+    const token = searchParams.get('token');
     const service = searchParams.get('service');
 
-    if (error) {
-      setMessage(`Failed to connect: ${error}`);
+    if (error)
+    {
+      setMessage(`Failed: ${error}`);
       setTimeout(() => {
-        navigate('/services');
+        navigate('/login');
       }, 3000);
-    } else if (success) {
-      setMessage(`Successfully connected${service ? ` to ${service}` : ''}!`);
+    }
+    else if (token)
+    {
+      setMessage(`Login successful! Welcome.`);
+
+      localStorage.setItem('token', token);
+
       setTimeout(() => {
-        navigate('/services');
-      }, 2000);
-    } else {
-      setMessage('Connection complete. Redirecting...');
+        window.location.href = '/dashboard';
+      }, 1500);
+    }
+    else
+    {
+      setMessage('Redirecting...');
       setTimeout(() => {
-        navigate('/services');
+        navigate('/login');
       }, 2000);
     }
   }, [navigate, searchParams]);

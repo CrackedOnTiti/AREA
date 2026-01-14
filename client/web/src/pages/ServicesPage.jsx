@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Layout from '../components/layout/Layout';
 import PageHeader from '../components/ui/PageHeader';
 import ServiceCard from '../components/features/ServiceCard';
@@ -12,6 +12,7 @@ const OAUTH_SERVICES = ['gmail', 'facebook', 'github', 'spotify'];
 const ServicesPage = () =>
 {
   const { services, connections, loading, error } = useServices();
+  const [connectingService, setConnectingService] = useState(null);
 
   const isConnected = (serviceName) =>
   {
@@ -40,6 +41,7 @@ const ServicesPage = () =>
 
   const handleConnect = (serviceName) =>
   {
+    setConnectingService(serviceName);
     connectService(serviceName);
   };
 
@@ -79,6 +81,7 @@ const ServicesPage = () =>
                 service={service}
                 isConnected={isConnected(service.name)}
                 requiresOAuth={requiresOAuth(service.name)}
+                isConnecting={connectingService === service.name}
                 onConnect={handleConnect}
               />
             ))}

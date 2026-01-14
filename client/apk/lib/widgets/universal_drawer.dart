@@ -122,12 +122,14 @@ class _UniversalDrawerState extends State<UniversalDrawer> {
                   },
                   child: Padding(
                     padding: EdgeInsets.all(10),
-                    child: Text(
-                      'Services',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
+                    child: Center(
+                      child: Text(
+                        'Services',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                   ),
@@ -148,12 +150,14 @@ class _UniversalDrawerState extends State<UniversalDrawer> {
                   },
                   child: Padding(
                     padding: EdgeInsets.all(10),
-                    child: Text(
-                      'Profile',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
+                    child: Center(
+                      child: Text(
+                        'Profile',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                   ),

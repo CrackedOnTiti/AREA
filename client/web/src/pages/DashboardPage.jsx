@@ -1,56 +1,17 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '../components/layout/Layout';
 import PageHeader from '../components/ui/PageHeader';
-
-
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
+import { useWorkflows } from '../hooks/useWorkflows';
 
 
 const DashboardPage = () =>
 {
   const navigate = useNavigate();
+  const { workflows, loading } = useWorkflows();
 
-  const [stats, setStats] = useState({
-    totalWorkflows: 0,
-    activeWorkflows: 0,
-    loading: true
-  });
-
-  useEffect(() =>
-  {
-    fetchStats();
-  }, []);
-
-  const fetchStats = async () =>
-  {
-    try
-    {
-      const token = localStorage.getItem('token');
-
-      const response = await fetch(`${API_URL}/api/areas`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      if (response.ok)
-      {
-        const data = await response.json();
-        const active = data.areas.filter(area => area.is_active).length;
-
-        setStats({
-          totalWorkflows: data.total || 0,
-          activeWorkflows: active,
-          loading: false
-        });
-      }
-    }
-    catch (error)
-    {
-      setStats(prev => ({ ...prev, loading: false }));
-    }
-  };
+  const totalWorkflows = workflows.length;
+  const activeWorkflows = workflows.filter(w => w.is_active).length;
 
   return (
     <Layout>
@@ -70,7 +31,7 @@ const DashboardPage = () =>
             </div>
 
             <div className="text-4xl font-bold text-white">
-              {stats.loading ? '...' : stats.totalWorkflows}
+              {loading ? '...' : totalWorkflows}
             </div>
           </div>
 
@@ -80,7 +41,7 @@ const DashboardPage = () =>
             </div>
 
             <div className="text-4xl font-bold text-white">
-              {stats.loading ? '...' : stats.activeWorkflows}
+              {loading ? '...' : activeWorkflows}
             </div>
           </div>
 

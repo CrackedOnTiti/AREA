@@ -2,21 +2,21 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 
-
 const Layout = ({ children }) =>
 {
+  const [menuOpen, setMenuOpen] = useState(false);
   const navigate = useNavigate();
   const { logout } = useAuth();
-  const [drawerOpen, setDrawerOpen] = useState(false);
 
-  const toggleDrawer = () =>
+  const toggleMenu = () =>
   {
-    setDrawerOpen(!drawerOpen);
+    setMenuOpen(!menuOpen);
   };
 
-  const closeDrawer = () =>
+  const navigateTo = (path) =>
   {
-    setDrawerOpen(false);
+    navigate(path);
+    setMenuOpen(false);
   };
 
   const handleLogout = () =>
@@ -25,43 +25,35 @@ const Layout = ({ children }) =>
     navigate('/login');
   };
 
-  const navigateTo = (path) =>
-  {
-    navigate(path);
-    closeDrawer();
-  };
-
   return (
-    <div className="min-h-screen bg-black">
+    <div className="min-h-screen bg-black text-white">
+      {/* Top Navigation Bar */}
+      <nav className="bg-black border-b border-white p-4 flex justify-between items-center">
+        <div className="flex items-center space-x-4">
+          <div className="inline-block border-2 border-white p-2">
+            <div className="text-white text-xl font-bold leading-tight">
+              AR
+            </div>
+            <div className="text-white text-xl font-bold leading-tight">
+              EA
+            </div>
+          </div>
+          <span className="text-xl font-bold">AREA</span>
+        </div>
 
-      <div className="w-full px-5 py-4 border-b border-white flex justify-between items-center">
         <button
-          onClick={() => navigate('/dashboard')}
-          className="border-2 border-white px-1 py-1 text-white hover:bg-white hover:text-black transition-colors"
+          onClick={toggleMenu}
+          className="text-white text-2xl focus:outline-none"
+          aria-label="Toggle menu"
         >
-          <div className="text-xl font-bold leading-tight tracking-wider">AR</div>
-          <div className="text-xl font-bold leading-tight tracking-wider">EA</div>
+          ☰
         </button>
+      </nav>
 
-        <button
-          onClick={toggleDrawer}
-          className="flex flex-col gap-1 p-2 hover:opacity-70 transition-opacity"
-        >
-          <div className="w-6 h-0.5 bg-white"></div>
-          <div className="w-6 h-0.5 bg-white"></div>
-          <div className="w-6 h-0.5 bg-white"></div>
-        </button>
-      </div>
-
-      {drawerOpen && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-70 z-40"
-          onClick={closeDrawer}
-        />
-      )}
-
-      <div className={`fixed top-0 right-0 h-full w-80 bg-black border-l border-white z-50 transform transition-transform duration-300 ${
-          drawerOpen ? 'translate-x-0' : 'translate-x-full'
+      {/* Sliding Menu */}
+      <div
+        className={`fixed top-0 right-0 h-full w-64 bg-black border-l border-white z-50 transform transition-transform duration-300 ease-in-out ${
+          menuOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
         <div className="p-5 h-full flex flex-col">
@@ -89,6 +81,15 @@ const Layout = ({ children }) =>
             className="text-white text-lg font-bold text-left mb-5 hover:text-gray-300 transition-colors"
           >
             Services
+          </button>
+
+          <div className="border-t border-white my-5" />
+
+          <button
+            onClick={() => navigateTo('/profile')}
+            className="text-white text-lg font-bold text-left mb-5 hover:text-gray-300 transition-colors"
+          >
+            Profile
           </button>
 
           <div className="border-t border-white my-5" />

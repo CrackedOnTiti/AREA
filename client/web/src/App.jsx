@@ -3,10 +3,12 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
+import ResetPasswordPage from './pages/ResetPasswordPage';
 import DashboardPage from './pages/DashboardPage';
 import ServicesPage from './pages/ServicesPage';
 import WorkflowsPage from './pages/WorkflowsPage';
 import CreateWorkflowPage from './pages/CreateWorkflowPage';
+import ProfilePage from './pages/ProfilePage';
 import OAuthCallbackPage from './pages/OAuthCallbackPage';
 
 const PublicRoute = ({ children }) => {
@@ -43,6 +45,15 @@ function App() {
           />
 
           <Route
+            path="/reset-password"
+            element={
+              <PublicRoute>
+                <ResetPasswordPage />
+              </PublicRoute>
+            }
+          />
+
+          <Route
             path="/dashboard"
             element={
               <ProtectedRoute>
@@ -74,6 +85,15 @@ function App() {
             element={
               <ProtectedRoute>
                 <CreateWorkflowPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <ProfilePage />
               </ProtectedRoute>
             }
           />

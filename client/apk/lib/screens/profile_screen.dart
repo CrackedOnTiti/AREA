@@ -16,12 +16,82 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   String _username = '';
   String _email = '';
+  String _serverIp = '';
   bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
+    _loadServerIp();
     _loadUserData();
+  }
+
+  Future<void> _loadServerIp() async {
+    final ip = await StorageService.getServerIp();
+    if (mounted) {
+      setState(() {
+        _serverIp = ip;
+      });
+    }
+  }
+
+  Future<void> _showIpDialog() async {
+    final currentIp = await StorageService.getServerIp();
+    final ipController = TextEditingController(text: currentIp);
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: Colors.black,
+          title: Text(
+            'Server IP Configuration',
+            style: TextStyle(color: Colors.white),
+          ),
+          content: TextField(
+            controller: ipController,
+            style: TextStyle(color: Colors.white),
+            decoration: InputDecoration(
+              hintText: 'Enter server IP:port',
+              hintStyle: TextStyle(color: Colors.grey),
+              enabledBorder: OutlineInputBorder(
+                borderSide: BorderSide(color: Colors.white),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderSide: BorderSide(color: Colors.white, width: 2),
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text('Cancel', style: TextStyle(color: Colors.grey)),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                await StorageService.saveServerIp(ipController.text.trim());
+                if (context.mounted) {
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Server IP updated to ${ipController.text.trim()}'),
+                      backgroundColor: Colors.green,
+                    ),
+                  );
+                  // Reload the displayed IP
+                  _loadServerIp();
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.white,
+                foregroundColor: Colors.black,
+              ),
+              child: Text('Save'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   Future<void> _loadUserData() async {
@@ -131,6 +201,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               backgroundColor: Colors.orange,
                             ),
                           );
+                        }),
+
+                        // Server IP field with Edit button
+                        _buildInfoRow('Server IP', _serverIp, () {
+                          _showIpDialog();
                         }),
 
                         SizedBox(height: 40),

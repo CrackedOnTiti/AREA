@@ -2,7 +2,7 @@ import React from 'react';
 import { CARD_BASE, BUTTON_PRIMARY, STATUS_BADGE } from '../../utils/styles';
 
 
-const ServiceCard = ({ service, isConnected, requiresOAuth, onConnect }) =>
+const ServiceCard = ({ service, isConnected, requiresOAuth, isConnecting, onConnect }) =>
 {
   return (
     <div className={`${CARD_BASE} flex flex-col`}>
@@ -13,7 +13,7 @@ const ServiceCard = ({ service, isConnected, requiresOAuth, onConnect }) =>
         {isConnected ? (
           <ConnectionBadge badge={STATUS_BADGE.green} text="Connected" />
         ) : requiresOAuth ? (
-          <ConnectButton onClick={() => onConnect(service.name)} />
+          <ConnectButton onClick={() => onConnect(service.name)} isLoading={isConnecting} />
         ) : (
           <ConnectionBadge badge={STATUS_BADGE.blue} text="Available" />
         )}
@@ -53,15 +53,31 @@ const ConnectionBadge = ({ badge, text }) =>
 };
 
 
-const ConnectButton = ({ onClick }) =>
+const ConnectButton = ({ onClick, isLoading }) =>
 {
   return (
     <button
       onClick={onClick}
-      className={`w-full ${BUTTON_PRIMARY}`}
+      disabled={isLoading}
+      className={`w-full ${BUTTON_PRIMARY} ${isLoading ? 'opacity-70 cursor-not-allowed' : ''}`}
     >
-      Connect
+      {isLoading ? (
+        <span className="flex items-center justify-center gap-2">
+          <LoadingSpinner />
+          Connecting...
+        </span>
+      ) : (
+        'Connect'
+      )}
     </button>
+  );
+};
+
+
+const LoadingSpinner = () =>
+{
+  return (
+    <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full" />
   );
 };
 

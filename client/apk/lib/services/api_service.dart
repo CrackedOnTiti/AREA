@@ -186,4 +186,37 @@ class ApiService {
       };
     }
   }
+
+  // Get services with connection status
+  static Future<Map<String, dynamic>> getServices(String token) async {
+    try {
+      final baseUrl = await getBaseUrl();
+
+      final response = await http.get(
+        Uri.parse('$baseUrl/services'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return {
+          'success': true,
+          'services': data['services'] ?? [],
+        };
+      } else {
+        return {
+          'success': false,
+          'error': 'Failed to fetch services',
+        };
+      }
+    } catch (e) {
+      return {
+        'success': false,
+        'error': 'Network error: ${e.toString()}',
+      };
+    }
+  }
 }

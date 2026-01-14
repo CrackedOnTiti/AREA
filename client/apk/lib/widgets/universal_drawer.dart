@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../services/storage_service.dart';
 import '../screens/login_screen.dart';
 import '../screens/profile_screen.dart';
+import '../screens/services_screen.dart';
 
 class UniversalDrawer extends StatefulWidget {
   const UniversalDrawer({Key? key}) : super(key: key);
@@ -114,8 +115,10 @@ class _UniversalDrawerState extends State<UniversalDrawer> {
                 // Services Section
                 InkWell(
                   onTap: () {
-                    print('Services tapped');
-                    // TODO: Navigate to services screen
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => ServicesScreen()),
+                    );
                   },
                   child: Padding(
                     padding: EdgeInsets.all(10),

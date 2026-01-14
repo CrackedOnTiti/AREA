@@ -145,15 +145,13 @@ def google_callback():
         # Generate JWT token
         jwt_token = generate_token(user.id)
 
-        # Return token and user info
-        return jsonify({
-            'message': 'Google login successful',
-            'token': jwt_token,
-            'user': user.to_dict()
-        }), 200
+        # Redirect to frontend with token
+        frontend_url = 'http://localhost:8081/oauth/callback'
+        return redirect(f'{frontend_url}?token={jwt_token}&success=true&service=google')
 
     except Exception as e:
-        return jsonify({'error': f'OAuth authentication failed: {str(e)}'}), 400
+        frontend_url = 'http://localhost:8081/oauth/callback'
+        return redirect(f'{frontend_url}?error={str(e)}')
 
 
 @auth_bp.route('/facebook/login', methods=['GET'])
@@ -209,15 +207,13 @@ def facebook_callback():
         # Generate JWT token
         jwt_token = generate_token(user.id)
 
-        # Return token and user info
-        return jsonify({
-            'message': 'Facebook login successful',
-            'token': jwt_token,
-            'user': user.to_dict()
-        }), 200
+        # Redirect to frontend with token
+        frontend_url = 'http://localhost:8081/oauth/callback'
+        return redirect(f'{frontend_url}?token={jwt_token}&success=true&service=facebook')
 
     except Exception as e:
-        return jsonify({'error': f'OAuth authentication failed: {str(e)}'}), 400
+        frontend_url = 'http://localhost:8081/oauth/callback'
+        return redirect(f'{frontend_url}?error={str(e)}')
 
 
 @auth_bp.route('/forgot-password', methods=['POST'])

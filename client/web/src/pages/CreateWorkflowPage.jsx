@@ -8,9 +8,7 @@ import Step2ReactionSelection from '../components/features/Step2ReactionSelectio
 import Step3NameAndSubmit from '../components/features/Step3NameAndSubmit';
 import { useServices } from '../hooks/useServices';
 import { createArea } from '../services/areasService';
-
-
-const OAUTH_SERVICES = ['gmail', 'facebook', 'github', 'spotify'];
+import { OAUTH_SERVICES } from '../utils/constants';
 
 
 const CreateWorkflowPage = () =>

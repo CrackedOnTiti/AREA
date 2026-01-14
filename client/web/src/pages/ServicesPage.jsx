@@ -1,36 +1,35 @@
 import React, { useState } from 'react';
 import Layout from '../components/layout/Layout';
 import PageHeader from '../components/ui/PageHeader';
-import ServiceCard from '../components/features/ServiceCard';
+import ConnectedServiceItem from '../components/features/ConnectedServiceItem';
+import ServiceCategory from '../components/features/ServiceCategory';
 import { useServices } from '../hooks/useServices';
-import { connectService } from '../services/servicesService';
-
-
-const OAUTH_SERVICES = ['gmail', 'facebook', 'github', 'spotify'];
+import { connectService, disconnectService } from '../services/servicesService';
+import { OAUTH_SERVICES, SERVICE_CATEGORIES } from '../utils/constants';
 
 
 const ServicesPage = () =>
 {
-  const { services, connections, loading, error } = useServices();
+  const { services, connections, loading, error, refetch } = useServices();
   const [connectingService, setConnectingService] = useState(null);
+  const [disconnectingService, setDisconnectingService] = useState(null);
 
   const isConnected = (serviceName) =>
   {
     if (!serviceName) return false;
-    
-    // Find the connection for this service
-    const connection = connections.find(conn => 
-      conn.service_name && conn.service_name.toLowerCase() === serviceName.toLowerCase()
+
+    const name = serviceName.toLowerCase();
+
+    // Gmail and Drive share the same OAuth token - if one is disconnected, both are
+    if (name === 'drive' || name === 'gmail') {
+      const gmailConn = connections.find(c => c.service_name?.toLowerCase() === 'gmail');
+      const driveConn = connections.find(c => c.service_name?.toLowerCase() === 'drive');
+      return (gmailConn?.is_connected && driveConn?.is_connected) || false;
+    }
+
+    const connection = connections.find(conn =>
+      conn.service_name && conn.service_name.toLowerCase() === name
     );
-    
-    // Debug logging
-    console.log(`Checking connection for service: ${serviceName}`, {
-      connectionFound: !!connection,
-      isConnected: connection ? connection.is_connected : false,
-      allConnections: connections.map(c => ({name: c.service_name, connected: c.is_connected}))
-    });
-    
-    // Return the is_connected status from the backend, default to false if not found
     return connection ? connection.is_connected : false;
   };
 
@@ -45,10 +44,38 @@ const ServicesPage = () =>
     connectService(serviceName);
   };
 
+  const handleDisconnect = async (serviceName) =>
+  {
+    setDisconnectingService(serviceName);
+    try
+    {
+      await disconnectService(serviceName);
+      await refetch();
+    }
+    catch (err)
+    {
+      console.error('Failed to disconnect:', err);
+    }
+    finally
+    {
+      setDisconnectingService(null);
+    }
+  };
+
+  const connectedServices = services.filter(s => isConnected(s.name));
+  const availableServices = services.filter(s => !isConnected(s.name) && requiresOAuth(s.name));
+
+  const getServicesForCategory = (categoryServices) =>
+  {
+    return availableServices.filter(s =>
+      categoryServices.includes(s.name.toLowerCase())
+    );
+  };
+
   return (
     <Layout>
 
-      <div className="max-w-7xl mx-auto px-4 py-12">
+      <div className="max-w-4xl mx-auto px-4 py-12">
 
         <PageHeader
           title="Services"
@@ -67,30 +94,81 @@ const ServicesPage = () =>
           </div>
         )}
 
-        {!loading && !error && services.length === 0 && (
-          <div className="text-center text-gray-400 text-xl">
-            No services available
-          </div>
-        )}
+        {!loading && !error && (
+          <div className="space-y-10">
 
-        {!loading && !error && services.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {services.map((service) => (
-              <ServiceCard
-                key={service.id || service.name}
-                service={service}
-                isConnected={isConnected(service.name)}
-                requiresOAuth={requiresOAuth(service.name)}
-                isConnecting={connectingService === service.name}
-                onConnect={handleConnect}
-              />
-            ))}
+            <ConnectedServicesSection
+              services={connectedServices}
+              disconnectingService={disconnectingService}
+              onDisconnect={handleDisconnect}
+            />
+
+            <AvailableServicesSection
+              categories={SERVICE_CATEGORIES}
+              getServicesForCategory={getServicesForCategory}
+              connectingService={connectingService}
+              onConnect={handleConnect}
+            />
+
           </div>
         )}
 
       </div>
 
     </Layout>
+  );
+};
+
+
+const ConnectedServicesSection = ({ services, disconnectingService, onDisconnect }) =>
+{
+  return (
+    <section>
+      <h2 className="text-xl font-semibold text-white mb-4">
+        Your Connected Services
+      </h2>
+
+      {services.length === 0 ? (
+        <p className="text-gray-400 text-sm">
+          No services connected yet. Connect a service below to start creating workflows.
+        </p>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          {services.map((service) => (
+            <ConnectedServiceItem
+              key={service.id || service.name}
+              service={service}
+              isDisconnecting={disconnectingService === service.name}
+              onDisconnect={onDisconnect}
+            />
+          ))}
+        </div>
+      )}
+    </section>
+  );
+};
+
+
+const AvailableServicesSection = ({ categories, getServicesForCategory, connectingService, onConnect }) =>
+{
+  return (
+    <section>
+      <h2 className="text-xl font-semibold text-white mb-4">
+        Available Services
+      </h2>
+
+      <div className="space-y-3">
+        {categories.map((category) => (
+          <ServiceCategory
+            key={category.key}
+            title={category.title}
+            services={getServicesForCategory(category.services)}
+            isConnecting={connectingService}
+            onConnect={onConnect}
+          />
+        ))}
+      </div>
+    </section>
   );
 };
 

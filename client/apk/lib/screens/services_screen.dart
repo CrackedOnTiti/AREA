@@ -143,7 +143,6 @@ class _ServicesScreenState extends State<ServicesScreen> {
                       // Connect/Disconnect button (top)
                       GestureDetector(
                         onTap: () {
-                          setState(() => _swipedServiceName = null);
                           _handleConnectionToggle(service);
                         },
                         child: Container(
@@ -163,7 +162,6 @@ class _ServicesScreenState extends State<ServicesScreen> {
                       // Details button (bottom)
                       GestureDetector(
                         onTap: () {
-                          setState(() => _swipedServiceName = null);
                           _showServiceDetails(service);
                         },
                         child: Container(

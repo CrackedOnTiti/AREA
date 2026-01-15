@@ -29,17 +29,20 @@ const Layout = ({ children }) =>
     <div className="min-h-screen bg-black text-white">
       {/* Top Navigation Bar */}
       <nav className="bg-black border-b border-white p-4 flex justify-between items-center">
-        <div className="flex items-center space-x-4">
-          <div className="inline-block border-2 border-white p-2">
-            <div className="text-white text-xl font-bold leading-tight">
+        <button
+          onClick={() => navigate('/dashboard')}
+          className="group flex items-center space-x-4"
+        >
+          <div className="border-2 border-white p-2 bg-black group-hover:bg-white transition-colors">
+            <div className="text-white group-hover:text-black text-xl font-bold leading-tight transition-colors">
               AR
             </div>
-            <div className="text-white text-xl font-bold leading-tight">
+            <div className="text-white group-hover:text-black text-xl font-bold leading-tight transition-colors">
               EA
             </div>
           </div>
-          <span className="text-xl font-bold">AREA</span>
-        </div>
+          <span className="text-xl font-bold group-hover:text-gray-300 transition-colors">AREA</span>
+        </button>
 
         <button
           onClick={toggleMenu}

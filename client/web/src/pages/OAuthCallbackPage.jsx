@@ -11,7 +11,6 @@ const OAuthCallbackPage = () =>
   {
     const error = searchParams.get('error');
     const token = searchParams.get('token');
-    const service = searchParams.get('service');
 
     if (error)
     {

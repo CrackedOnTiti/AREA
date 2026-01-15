@@ -4,6 +4,7 @@ import '../services/api_service.dart';
 import '../services/storage_service.dart';
 import 'register_screen.dart';
 import 'home_screen.dart';
+import 'oauth_webview_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   @override
@@ -60,6 +61,32 @@ class _LoginScreenState extends State<LoginScreen> {
       setState(() {
         _errorMessage = result['error'];
       });
+    }
+  }
+
+  Future<void> _handleOAuthLogin(String provider, String title) async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => OAuthWebViewScreen(
+          provider: provider,
+          title: title,
+        ),
+      ),
+    );
+
+    if (result != null && result['success'] == true) {
+      // OAuth login successful, navigate to home
+      if (mounted) {
+        Navigator.pushReplacement(
+          context,
+          PageRouteBuilder(
+            pageBuilder: (context, animation, secondaryAnimation) => HomeScreen(),
+            transitionDuration: Duration.zero,
+            reverseTransitionDuration: Duration.zero,
+          ),
+        );
+      }
     }
   }
 
@@ -212,9 +239,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           MouseRegion(
                             cursor: SystemMouseCursors.click,
                             child: GestureDetector(
-                              onTap: () {
-                                print('Google login pressed');
-                              },
+                              onTap: () => _handleOAuthLogin('google', 'Login with Google'),
                               child: Image.asset(
                                 'assets/google-icon.png',
                                 width: 50,
@@ -227,9 +252,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           MouseRegion(
                             cursor: SystemMouseCursors.click,
                             child: GestureDetector(
-                              onTap: () {
-                                print('Facebook login pressed');
-                              },
+                              onTap: () => _handleOAuthLogin('facebook', 'Login with Facebook'),
                               child: Image.asset(
                                 'assets/facebook-icon.png',
                                 width: 50,

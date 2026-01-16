@@ -117,6 +117,74 @@ class ApiService {
     }
   }
 
+  // Update current user's email
+  static Future<Map<String, dynamic>> updateEmail(String token, String newEmail) async {
+    try {
+      final baseUrl = await getBaseUrl();
+      final response = await http.patch(
+        Uri.parse('$baseUrl/auth/me'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({'email': newEmail}),
+      );
+
+      final data = jsonDecode(response.body);
+
+      if (response.statusCode == 200) {
+        return {
+          'success': true,
+          'user': data['user'],
+          'message': data['message'],
+        };
+      } else {
+        return {
+          'success': false,
+          'error': data['error'] ?? 'Failed to update email',
+        };
+      }
+    } catch (e) {
+      return {
+        'success': false,
+        'error': 'Network error: ${e.toString()}',
+      };
+    }
+  }
+
+  // Delete current user's account
+  static Future<Map<String, dynamic>> deleteAccount(String token) async {
+    try {
+      final baseUrl = await getBaseUrl();
+      final response = await http.delete(
+        Uri.parse('$baseUrl/auth/me'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+      final data = jsonDecode(response.body);
+
+      if (response.statusCode == 200) {
+        return {
+          'success': true,
+          'message': data['message'],
+        };
+      } else {
+        return {
+          'success': false,
+          'error': data['error'] ?? 'Failed to delete account',
+        };
+      }
+    } catch (e) {
+      return {
+        'success': false,
+        'error': 'Network error: ${e.toString()}',
+      };
+    }
+  }
+
   // Get dashboard stats
   static Future<Map<String, dynamic>> getDashboardStats(String token) async {
     try {

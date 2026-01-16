@@ -130,6 +130,41 @@ def update_area(current_user, area_id):
     }), 200
 
 
+@areas_bp.route('/<int:area_id>', methods=['PATCH'])
+@require_auth
+def patch_area(current_user, area_id):
+    """Partial update a workflow (e.g., toggle active status)"""
+    area = UserArea.query.get(area_id)
+
+    if not area:
+        return jsonify({'error': 'Workflow not found'}), 404
+
+    # Verify admin user
+    is_admin = current_user.id == 1 and current_user.username == 'admin'
+    if area.user_id != current_user.id and not is_admin:
+        return jsonify({'error': 'Unauthorized access to this workflow'}), 403
+
+    data = request.get_json()
+
+    # Update only provided fields
+    if 'name' in data:
+        area.name = data['name']
+    if 'is_active' in data:
+        area.is_active = data['is_active']
+    if 'action_config' in data:
+        area.action_config = data['action_config']
+    if 'reaction_config' in data:
+        area.reaction_config = data['reaction_config']
+
+    area.updated_at = datetime.now(timezone.utc)
+    db.session.commit()
+
+    return jsonify({
+        'message': 'Workflow updated successfully',
+        'area': area.to_dict()
+    }), 200
+
+
 @areas_bp.route('/<int:area_id>/toggle', methods=['PATCH'])
 @require_auth
 def toggle_area(current_user, area_id):
@@ -139,8 +174,9 @@ def toggle_area(current_user, area_id):
     if not area:
         return jsonify({'error': 'Workflow not found'}), 404
 
-    # Verify ownership
-    if area.user_id != current_user.id:
+    # Verify admin user
+    is_admin = current_user.id == 1 and current_user.username == 'admin'
+    if area.user_id != current_user.id and not is_admin:
         return jsonify({'error': 'Unauthorized access to this workflow'}), 403
 
     # Toggle active status
@@ -163,8 +199,9 @@ def delete_area(current_user, area_id):
     if not area:
         return jsonify({'error': 'Workflow not found'}), 404
 
-    # Verify ownership
-    if area.user_id != current_user.id:
+    # Verify ownership (admin can delete any workflow)
+    is_admin = current_user.id == 1 and current_user.username == 'admin'
+    if area.user_id != current_user.id and not is_admin:
         return jsonify({'error': 'Unauthorized access to this workflow'}), 403
 
     db.session.delete(area)

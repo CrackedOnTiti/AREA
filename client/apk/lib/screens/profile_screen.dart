@@ -331,15 +331,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
               child: Text('Cancel', style: TextStyle(color: Colors.grey)),
             ),
             ElevatedButton(
-              onPressed: () {
-                // TODO: Implement workflow reset API call
+              onPressed: () async {
                 Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Reset workflows - coming soon'),
-                    backgroundColor: Colors.orange,
-                  ),
-                );
+                final token = await StorageService.getToken();
+                if (token == null) return;
+
+                final result = await ApiService.resetWorkflows(token);
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(result['success']
+                          ? 'Deleted ${result['deleted_count']} workflow(s)'
+                          : result['error'] ?? 'Failed to reset workflows'),
+                      backgroundColor: result['success'] ? Colors.green : Colors.red,
+                    ),
+                  );
+                }
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.red,
@@ -373,15 +380,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
               child: Text('Cancel', style: TextStyle(color: Colors.grey)),
             ),
             ElevatedButton(
-              onPressed: () {
-                // TODO: Implement services reset API call
+              onPressed: () async {
                 Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Reset services - coming soon'),
-                    backgroundColor: Colors.orange,
-                  ),
-                );
+                final token = await StorageService.getToken();
+                if (token == null) return;
+
+                final result = await ApiService.resetConnections(token);
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(result['success']
+                          ? 'Disconnected ${result['disconnected_count']} service(s)'
+                          : result['error'] ?? 'Failed to reset services'),
+                      backgroundColor: result['success'] ? Colors.green : Colors.red,
+                    ),
+                  );
+                }
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.red,
@@ -415,15 +429,26 @@ class _ProfileScreenState extends State<ProfileScreen> {
               child: Text('Cancel', style: TextStyle(color: Colors.grey)),
             ),
             ElevatedButton(
-              onPressed: () {
-                // TODO: Implement reset all API call
+              onPressed: () async {
                 Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Reset all - coming soon'),
-                    backgroundColor: Colors.orange,
-                  ),
-                );
+                final token = await StorageService.getToken();
+                if (token == null) return;
+
+                // Reset both workflows and connections
+                final workflowResult = await ApiService.resetWorkflows(token);
+                final connectionResult = await ApiService.resetConnections(token);
+
+                if (mounted) {
+                  final success = workflowResult['success'] && connectionResult['success'];
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(success
+                          ? 'Deleted ${workflowResult['deleted_count']} workflow(s) and disconnected ${connectionResult['disconnected_count']} service(s)'
+                          : 'Some operations failed'),
+                      backgroundColor: success ? Colors.green : Colors.red,
+                    ),
+                  );
+                }
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.red,

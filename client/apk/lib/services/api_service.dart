@@ -253,6 +253,76 @@ class ApiService {
     }
   }
 
+  // Reset all workflows for current user
+  static Future<Map<String, dynamic>> resetWorkflows(String token) async {
+    try {
+      final baseUrl = await getBaseUrl();
+
+      final response = await http.delete(
+        Uri.parse('$baseUrl/areas/reset'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return {
+          'success': true,
+          'message': data['message'],
+          'deleted_count': data['deleted_count'] ?? 0,
+        };
+      } else {
+        final data = jsonDecode(response.body);
+        return {
+          'success': false,
+          'error': data['error'] ?? 'Failed to reset workflows',
+        };
+      }
+    } catch (e) {
+      return {
+        'success': false,
+        'error': 'Network error: ${e.toString()}',
+      };
+    }
+  }
+
+  // Reset all service connections for current user
+  static Future<Map<String, dynamic>> resetConnections(String token) async {
+    try {
+      final baseUrl = await getBaseUrl();
+
+      final response = await http.delete(
+        Uri.parse('$baseUrl/connections/reset'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return {
+          'success': true,
+          'message': data['message'],
+          'disconnected_count': data['disconnected_count'] ?? 0,
+        };
+      } else {
+        final data = jsonDecode(response.body);
+        return {
+          'success': false,
+          'error': data['error'] ?? 'Failed to reset connections',
+        };
+      }
+    } catch (e) {
+      return {
+        'success': false,
+        'error': 'Network error: ${e.toString()}',
+      };
+    }
+  }
+
   // Admin: Get all users with their workflows
   static Future<Map<String, dynamic>> getAdminUsers(String token) async {
     try {

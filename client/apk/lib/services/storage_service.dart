@@ -32,22 +32,35 @@ class StorageService {
   }
 
   // Save user data
-  static Future<void> saveUserData(String username, String email) async {
+  static Future<void> saveUserData(String username, String email, {int? userId}) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_userKey, '$username|$email');
+    await prefs.setString(_userKey, '$username|$email|${userId ?? 0}');
   }
 
   // Get user data
-  static Future<Map<String, String>?> getUserData() async {
+  static Future<Map<String, dynamic>?> getUserData() async {
     final prefs = await SharedPreferences.getInstance();
     final data = prefs.getString(_userKey);
     if (data != null) {
       final parts = data.split('|');
-      if (parts.length == 2) {
-        return {'username': parts[0], 'email': parts[1]};
+      if (parts.length >= 2) {
+        return {
+          'username': parts[0],
+          'email': parts[1],
+          'id': parts.length > 2 ? int.tryParse(parts[2]) ?? 0 : 0,
+        };
       }
     }
     return null;
+  }
+
+  // Check if current user is admin
+  static Future<bool> isAdmin() async {
+    final userData = await getUserData();
+    if (userData != null) {
+      return userData['id'] == 1 && userData['username'] == 'admin';
+    }
+    return false;
   }
 
   // Save server IP

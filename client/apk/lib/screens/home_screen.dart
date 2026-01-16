@@ -4,6 +4,7 @@ import '../services/storage_service.dart';
 import '../services/api_service.dart';
 import '../widgets/universal_header.dart';
 import '../widgets/universal_drawer.dart';
+import 'create_workflow_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -52,9 +53,15 @@ class _HomeScreenState extends State<HomeScreen> {
       backgroundColor: Colors.black,
       endDrawer: UniversalDrawer(),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          print('Create workflow pressed');
-          // TODO: Navigate to workflow creation screen
+        onPressed: () async {
+          final result = await Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => CreateWorkflowScreen()),
+          );
+          // Refresh stats if workflow was created
+          if (result == true) {
+            _loadDashboardStats();
+          }
         },
         backgroundColor: Colors.white,
         shape: CircleBorder(),

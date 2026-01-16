@@ -219,4 +219,182 @@ class ApiService {
       };
     }
   }
+
+  // Get user's service connections
+  static Future<Map<String, dynamic>> getConnections(String token) async {
+    try {
+      final baseUrl = await getBaseUrl();
+
+      final response = await http.get(
+        Uri.parse('$baseUrl/connections'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return {
+          'success': true,
+          'connections': data['connections'] ?? [],
+        };
+      } else {
+        return {
+          'success': false,
+          'error': 'Failed to fetch connections',
+        };
+      }
+    } catch (e) {
+      return {
+        'success': false,
+        'error': 'Network error: ${e.toString()}',
+      };
+    }
+  }
+
+  // Admin: Get all users with their workflows
+  static Future<Map<String, dynamic>> getAdminUsers(String token) async {
+    try {
+      final baseUrl = await getBaseUrl();
+
+      final response = await http.get(
+        Uri.parse('$baseUrl/admin/users'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return {
+          'success': true,
+          'users': data['users'] ?? [],
+        };
+      } else {
+        return {
+          'success': false,
+          'error': 'Failed to fetch users',
+        };
+      }
+    } catch (e) {
+      return {
+        'success': false,
+        'error': 'Network error: ${e.toString()}',
+      };
+    }
+  }
+
+  // Toggle workflow active status
+  static Future<Map<String, dynamic>> toggleWorkflow(String token, int workflowId, bool isActive) async {
+    try {
+      final baseUrl = await getBaseUrl();
+
+      final response = await http.patch(
+        Uri.parse('$baseUrl/areas/$workflowId'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({
+          'is_active': isActive,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        return {'success': true};
+      } else {
+        final data = jsonDecode(response.body);
+        return {
+          'success': false,
+          'error': data['error'] ?? 'Failed to toggle workflow',
+        };
+      }
+    } catch (e) {
+      return {
+        'success': false,
+        'error': 'Network error: ${e.toString()}',
+      };
+    }
+  }
+
+  // Delete workflow
+  static Future<Map<String, dynamic>> deleteWorkflow(String token, int workflowId) async {
+    try {
+      final baseUrl = await getBaseUrl();
+
+      final response = await http.delete(
+        Uri.parse('$baseUrl/areas/$workflowId'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 204) {
+        return {'success': true};
+      } else {
+        final data = jsonDecode(response.body);
+        return {
+          'success': false,
+          'error': data['error'] ?? 'Failed to delete workflow',
+        };
+      }
+    } catch (e) {
+      return {
+        'success': false,
+        'error': 'Network error: ${e.toString()}',
+      };
+    }
+  }
+
+  // Create workflow
+  static Future<Map<String, dynamic>> createWorkflow(
+    String token,
+    String name,
+    int actionId,
+    int reactionId,
+    Map<String, dynamic> actionConfig,
+    Map<String, dynamic> reactionConfig,
+  ) async {
+    try {
+      final baseUrl = await getBaseUrl();
+
+      final response = await http.post(
+        Uri.parse('$baseUrl/areas'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({
+          'name': name,
+          'action_id': actionId,
+          'reaction_id': reactionId,
+          'action_config': actionConfig,
+          'reaction_config': reactionConfig,
+          'is_active': true,
+        }),
+      );
+
+      if (response.statusCode == 201 || response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return {
+          'success': true,
+          'area': data['area'],
+        };
+      } else {
+        final data = jsonDecode(response.body);
+        return {
+          'success': false,
+          'error': data['error'] ?? 'Failed to create workflow',
+        };
+      }
+    } catch (e) {
+      return {
+        'success': false,
+        'error': 'Network error: ${e.toString()}',
+      };
+    }
+  }
 }

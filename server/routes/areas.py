@@ -210,6 +210,27 @@ def delete_area(current_user, area_id):
     return jsonify({'message': 'Workflow deleted successfully'}), 200
 
 
+@areas_bp.route('/reset', methods=['DELETE'])
+@require_auth
+def reset_all_areas(current_user):
+    """Delete all workflows for the current user"""
+    # Get all user's workflows
+    areas = UserArea.query.filter_by(user_id=current_user.id).all()
+
+    count = len(areas)
+
+    # Delete all workflows
+    for area in areas:
+        db.session.delete(area)
+
+    db.session.commit()
+
+    return jsonify({
+        'message': f'Successfully deleted {count} workflow(s)',
+        'deleted_count': count
+    }), 200
+
+
 @areas_bp.route('/<int:area_id>/logs', methods=['GET'])
 @require_auth
 def get_area_logs(current_user, area_id):

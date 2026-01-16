@@ -98,6 +98,65 @@ def get_current_user(current_user):
     }), 200
 
 
+@auth_bp.route('/me', methods=['PATCH'])
+@require_auth
+def update_current_user(current_user):
+    """Update current user's email"""
+    data = request.get_json()
+
+    if not data:
+        return jsonify({'error': 'No data provided'}), 400
+
+    # Update email if provided
+    if 'email' in data:
+        new_email = data['email'].strip()
+
+        if not new_email:
+            return jsonify({'error': 'Email cannot be empty'}), 400
+
+        # Check if email is already taken by another user
+        existing_user = User.query.filter_by(email=new_email).first()
+        if existing_user and existing_user.id != current_user.id:
+            return jsonify({'error': 'Email already in use'}), 409
+
+        current_user.email = new_email
+
+    db.session.commit()
+
+    return jsonify({
+        'message': 'Profile updated successfully',
+        'user': current_user.to_dict()
+    }), 200
+
+
+@auth_bp.route('/me', methods=['DELETE'])
+@require_auth
+def delete_current_user(current_user):
+    """Delete current user's account and all associated data"""
+    from database.models import UserArea, UserServiceConnection, WorkflowLog
+
+    # Prevent admin from deleting themselves
+    if current_user.id == 1 and current_user.username == 'admin':
+        return jsonify({'error': 'Admin account cannot be deleted'}), 403
+
+    # Delete all user's workflow logs
+    user_areas = UserArea.query.filter_by(user_id=current_user.id).all()
+    for area in user_areas:
+        WorkflowLog.query.filter_by(area_id=area.id).delete()
+
+    # Delete all user's workflows
+    UserArea.query.filter_by(user_id=current_user.id).delete()
+
+    # Delete all user's service connections
+    UserServiceConnection.query.filter_by(user_id=current_user.id).delete()
+
+    # Delete the user
+    db.session.delete(current_user)
+    db.session.commit()
+
+    return jsonify({'message': 'Account deleted successfully'}), 200
+
+
 @auth_bp.route('/google/login', methods=['GET'])
 def google_login():
     """Initiate Google OAuth2 login"""

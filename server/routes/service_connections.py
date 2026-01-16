@@ -11,6 +11,27 @@ connections_bp = Blueprint('service_connections', __name__, url_prefix='/api/con
 oauth_state_storage = {}
 
 
+@connections_bp.route('/reset', methods=['DELETE'])
+@require_auth
+def reset_all_connections(current_user):
+    """Disconnect all services for the current user"""
+    # Get all user's connections
+    connections = UserServiceConnection.query.filter_by(user_id=current_user.id).all()
+
+    count = len(connections)
+
+    # Delete all connections
+    for connection in connections:
+        db.session.delete(connection)
+
+    db.session.commit()
+
+    return jsonify({
+        'message': f'Successfully disconnected {count} service(s)',
+        'disconnected_count': count
+    }), 200
+
+
 @connections_bp.route('', methods=['GET'])
 @require_auth
 def list_connections(current_user):

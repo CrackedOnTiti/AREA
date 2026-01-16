@@ -166,7 +166,7 @@ const LoginPage = () =>
 
           <div className="text-right mb-6">
             <Link
-              to="/forgot-password"
+              to="/reset-password"
               className="text-sm text-gray-400 hover:text-white transition-colors"
             >
               Forgot password?

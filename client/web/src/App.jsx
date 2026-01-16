@@ -10,6 +10,7 @@ import WorkflowsPage from './pages/WorkflowsPage';
 import CreateWorkflowPage from './pages/CreateWorkflowPage';
 import ProfilePage from './pages/ProfilePage';
 import OAuthCallbackPage from './pages/OAuthCallbackPage';
+import AdminPage from './pages/AdminPage';
 
 const PublicRoute = ({ children }) => {
   const { isAuthenticated } = useAuth();
@@ -19,6 +20,20 @@ const PublicRoute = ({ children }) => {
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated } = useAuth();
   return isAuthenticated() ? children : <Navigate to="/login" replace />;
+};
+
+const AdminRoute = ({ children }) => {
+  const { isAuthenticated, user } = useAuth();
+
+  if (!isAuthenticated()) {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (user?.id !== 1) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  return children;
 };
 
 function App() {
@@ -95,6 +110,15 @@ function App() {
               <ProtectedRoute>
                 <ProfilePage />
               </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/admin"
+            element={
+              <AdminRoute>
+                <AdminPage />
+              </AdminRoute>
             }
           />
 

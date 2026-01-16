@@ -6,7 +6,9 @@ const Layout = ({ children }) =>
 {
   const [menuOpen, setMenuOpen] = useState(false);
   const navigate = useNavigate();
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
+
+  const isAdmin = user?.id === 1;
 
   const toggleMenu = () =>
   {
@@ -94,6 +96,19 @@ const Layout = ({ children }) =>
           >
             Profile
           </button>
+
+          {isAdmin && (
+            <>
+              <div className="border-t border-white my-5" />
+
+              <button
+                onClick={() => navigateTo('/admin')}
+                className="text-yellow-500 text-lg font-bold text-left mb-5 hover:text-yellow-400 transition-colors"
+              >
+                Admin
+              </button>
+            </>
+          )}
 
           <div className="border-t border-white my-5" />
 

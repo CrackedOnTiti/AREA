@@ -8,6 +8,7 @@ from routes.auth import auth_bp
 from routes.areas import areas_bp
 from routes.services import services_bp
 from routes.service_connections import connections_bp
+from routes.admin import admin_bp
 from seed_data import seed_all
 from scheduler import init_scheduler, shutdown_scheduler
 import atexit
@@ -82,6 +83,7 @@ app.register_blueprint(auth_bp)
 app.register_blueprint(areas_bp)
 app.register_blueprint(services_bp)
 app.register_blueprint(connections_bp)
+app.register_blueprint(admin_bp)
 
 # Serve demo page
 @app.route('/demo')

@@ -2,6 +2,7 @@ from flask import Blueprint, request, jsonify, redirect, url_for, session
 from database.models import db, UserServiceConnection, Service
 from utils.auth_utils import require_auth
 from datetime import datetime, timezone, timedelta
+from config import Config
 
 connections_bp = Blueprint('service_connections', __name__, url_prefix='/api/connections')
 
@@ -161,18 +162,10 @@ def gmail_callback():
 
         db.session.commit()
 
-        # Redirect to frontend success page or return success response
-        return jsonify({
-            'success': True,
-            'message': 'Gmail and Drive connected successfully',
-            'connections': {
-                'gmail': gmail_connection.to_dict(),
-                'drive': drive_connection.to_dict() if drive_service else None
-            }
-        }), 200
+        return redirect(f"{Config.FRONTEND_URL}/services?connected=gmail")
 
     except Exception as e:
-        return jsonify({'error': f'OAuth failed: {str(e)}'}), 500
+        return redirect(f"{Config.FRONTEND_URL}/services?error=gmail")
 
 
 @connections_bp.route('/gmail', methods=['DELETE'])
@@ -279,15 +272,10 @@ def facebook_callback():
 
         db.session.commit()
 
-        # Redirect to frontend success page or return success response
-        return jsonify({
-            'success': True,
-            'message': 'Facebook connected successfully',
-            'connection': connection.to_dict()
-        }), 200
+        return redirect(f"{Config.FRONTEND_URL}/services?connected=facebook")
 
     except Exception as e:
-        return jsonify({'error': f'OAuth failed: {str(e)}'}), 500
+        return redirect(f"{Config.FRONTEND_URL}/services?error=facebook")
 
 
 @connections_bp.route('/facebook', methods=['DELETE'])
@@ -392,15 +380,10 @@ def github_callback():
 
         db.session.commit()
 
-        # Redirect to frontend success page or return success response
-        return jsonify({
-            'success': True,
-            'message': 'GitHub connected successfully',
-            'connection': connection.to_dict()
-        }), 200
+        return redirect(f"{Config.FRONTEND_URL}/services?connected=github")
 
     except Exception as e:
-        return jsonify({'error': f'OAuth failed: {str(e)}'}), 500
+        return redirect(f"{Config.FRONTEND_URL}/services?error=github")
 
 
 @connections_bp.route('/github', methods=['DELETE'])
@@ -563,15 +546,10 @@ def spotify_callback():
 
         db.session.commit()
 
-        # Redirect to frontend success page or return success response
-        return jsonify({
-            'success': True,
-            'message': 'Spotify connected successfully',
-            'connection': connection.to_dict()
-        }), 200
+        return redirect(f"{Config.FRONTEND_URL}/services?connected=spotify")
 
     except Exception as e:
-        return jsonify({'error': f'OAuth failed: {str(e)}'}), 500
+        return redirect(f"{Config.FRONTEND_URL}/services?error=spotify")
 
 
 @connections_bp.route('/spotify', methods=['DELETE'])

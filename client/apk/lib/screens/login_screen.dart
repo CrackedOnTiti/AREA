@@ -44,7 +44,7 @@ class _LoginScreenState extends State<LoginScreen> {
       // Save token and user data
       await StorageService.saveToken(result['token']);
       final user = result['user'];
-      await StorageService.saveUserData(user['username'], user['email']);
+      await StorageService.saveUserData(user['username'], user['email'], userId: user['id']);
 
       // Navigate to home
       if (mounted) {

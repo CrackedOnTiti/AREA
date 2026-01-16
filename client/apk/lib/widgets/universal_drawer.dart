@@ -3,6 +3,7 @@ import '../services/storage_service.dart';
 import '../screens/login_screen.dart';
 import '../screens/profile_screen.dart';
 import '../screens/services_screen.dart';
+import '../screens/admin_screen.dart';
 
 class UniversalDrawer extends StatefulWidget {
   const UniversalDrawer({Key? key}) : super(key: key);
@@ -13,11 +14,20 @@ class UniversalDrawer extends StatefulWidget {
 
 class _UniversalDrawerState extends State<UniversalDrawer> {
   final TextEditingController _ipController = TextEditingController();
+  bool _isAdmin = false;
 
   @override
   void initState() {
     super.initState();
     _loadServerIp();
+    _checkAdmin();
+  }
+
+  Future<void> _checkAdmin() async {
+    final isAdmin = await StorageService.isAdmin();
+    if (mounted) {
+      setState(() => _isAdmin = isAdmin);
+    }
   }
 
   @override
@@ -166,6 +176,34 @@ class _UniversalDrawerState extends State<UniversalDrawer> {
 
                 // Divider
                 Divider(color: Colors.white, thickness: 1),
+
+                // Admin Section
+                if (_isAdmin) ...[
+                  SizedBox(height: 20),
+                  InkWell(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => AdminScreen()),
+                      );
+                    },
+                    child: Padding(
+                      padding: EdgeInsets.all(10),
+                      child: Center(
+                        child: Text(
+                          'Admin',
+                          style: TextStyle(
+                            color: Colors.red,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 20),
+                  Divider(color: Colors.white, thickness: 1),
+                ],
 
                 Spacer(),
 

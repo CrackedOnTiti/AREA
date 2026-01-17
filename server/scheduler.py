@@ -18,6 +18,35 @@ scheduler = None
 _scheduler_lock_fd = None  # Keep lock file open to maintain lock
 
 
+def check_interval_elapsed(area: UserArea) -> bool:
+    """Check if the specified interval has elapsed since last trigger"""
+    interval_minutes = area.action_config.get('interval_minutes')
+    if not interval_minutes:
+        print(f"Warning: Area {area.id} missing interval_minutes config")
+        return False
+
+    try:
+        interval_minutes = int(interval_minutes)
+    except (ValueError, TypeError):
+        print(f"Warning: Area {area.id} has invalid interval_minutes: {interval_minutes}")
+        return False
+
+    now = datetime.now(timezone.utc)
+
+    # If never triggered, trigger now
+    if not area.last_triggered:
+        return True
+
+    # Ensure last_triggered is timezone-aware
+    last_triggered = area.last_triggered
+    if last_triggered.tzinfo is None:
+        last_triggered = last_triggered.replace(tzinfo=timezone.utc)
+
+    # Check if enough time has elapsed
+    minutes_since_last = (now - last_triggered).total_seconds() / 60
+    return minutes_since_last >= interval_minutes
+
+
 def check_time_matches(area: UserArea) -> bool:
     """Check if current time matches the configured time in area.action_config"""
     config_time = area.action_config.get('time')
@@ -729,6 +758,12 @@ def check_and_execute_workflows(app):
                     # Check action type
                     if action.name == 'time_matches':
                         should_trigger = check_time_matches(area)
+
+                    elif action.name == 'interval_elapsed':
+                        should_trigger = check_interval_elapsed(area)
+                        if should_trigger:
+                            interval_mins = area.action_config.get('interval_minutes', '?')
+                            trigger_metadata = f"Interval elapsed ({interval_mins} min)"
 
                     elif action.name in ['email_received_from', 'email_subject_contains']:
                         result = check_gmail_email_received(area)

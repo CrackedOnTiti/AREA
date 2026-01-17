@@ -8,9 +8,10 @@ bind = "0.0.0.0:8080"
 workers = int(os.getenv("GUNICORN_WORKERS", multiprocessing.cpu_count() * 2 + 1))
 worker_class = "sync"
 
-# Preload app before forking workers (scheduler starts once in master)
+# Preload app before forking workers
 preload_app = True
 worker_connections = 1000
+
 timeout = 120
 keepalive = 5
 

@@ -1,4 +1,5 @@
 from datetime import datetime, timezone, timedelta
+from zoneinfo import ZoneInfo
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.interval import IntervalTrigger
 from database.models import db, UserArea, WorkflowLog, Action, Reaction, UserServiceConnection, Service
@@ -23,8 +24,9 @@ def check_time_matches(area: UserArea) -> bool:
         print(f"Warning: Area {area.id} missing time config")
         return False
 
-    # Get current time in format HH:MM
-    now = datetime.now(timezone.utc)
+    # Get current time in configured timezone (defaults to UTC)
+    tz = ZoneInfo(Config.SCHEDULER_TIMEZONE)
+    now = datetime.now(tz)
     current_time = now.strftime('%H:%M')
 
     # Check if times match

@@ -15,6 +15,7 @@ from utils.spotify_client import (
 from config import Config
 
 scheduler = None
+_scheduler_lock_fd = None  # Keep lock file open to maintain lock
 
 
 def check_time_matches(area: UserArea) -> bool:
@@ -837,8 +838,24 @@ def init_scheduler(app):
     Initialize and start the background scheduler
     """
     global scheduler
+    import fcntl
+    import os
 
     if not Config.SCHEDULER_ENABLED:
+        return None
+
+    # Prevent multiple scheduler instances (can happen with gunicorn workers)
+    if scheduler is not None and scheduler.running:
+        return scheduler
+
+    # Use file lock to ensure only one scheduler across all workers
+    global _scheduler_lock_fd
+    lock_file = '/tmp/area_scheduler.lock'
+    try:
+        _scheduler_lock_fd = open(lock_file, 'w')
+        fcntl.flock(_scheduler_lock_fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except (IOError, OSError):
+        # Another process has the lock, skip scheduler initialization
         return None
 
     scheduler = BackgroundScheduler(timezone=Config.SCHEDULER_TIMEZONE)

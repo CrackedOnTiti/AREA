@@ -14,14 +14,20 @@ const ServicesPage = () =>
   const [connectingService, setConnectingService] = useState(null);
   const [disconnectingService, setDisconnectingService] = useState(null);
 
+  const googleService = {
+    id: 'google',
+    name: 'google',
+    display_name: 'Google',
+    description: 'Gmail and Google Drive integration'
+  };
+
   const isConnected = (serviceName) =>
   {
     if (!serviceName) return false;
 
     const name = serviceName.toLowerCase();
 
-    // Gmail and Drive share the same OAuth token - if one is disconnected, both are
-    if (name === 'drive' || name === 'gmail') {
+    if (name === 'google' || name === 'drive' || name === 'gmail') {
       const gmailConn = connections.find(c => c.service_name?.toLowerCase() === 'gmail');
       const driveConn = connections.find(c => c.service_name?.toLowerCase() === 'drive');
       return (gmailConn?.is_connected && driveConn?.is_connected) || false;
@@ -41,7 +47,8 @@ const ServicesPage = () =>
   const handleConnect = (serviceName) =>
   {
     setConnectingService(serviceName);
-    connectService(serviceName);
+    const actualService = serviceName.toLowerCase() === 'google' ? 'gmail' : serviceName;
+    connectService(actualService);
   };
 
   const handleDisconnect = async (serviceName) =>
@@ -62,8 +69,15 @@ const ServicesPage = () =>
     }
   };
 
-  const connectedServices = services.filter(s => isConnected(s.name));
-  const availableServices = services.filter(s => !isConnected(s.name) && requiresOAuth(s.name));
+  const processedServices = services.filter(s =>
+    s.name.toLowerCase() !== 'gmail' && s.name.toLowerCase() !== 'drive'
+  );
+
+  const hasGmail = services.some(s => s.name.toLowerCase() === 'gmail');
+  const allServices = hasGmail ? [...processedServices, googleService] : processedServices;
+
+  const connectedServices = allServices.filter(s => isConnected(s.name));
+  const availableServices = allServices.filter(s => !isConnected(s.name) && requiresOAuth(s.name));
 
   const getServicesForCategory = (categoryServices) =>
   {

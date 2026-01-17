@@ -59,8 +59,8 @@ export const connectService = (serviceName) =>
 };
 
 export const disconnectService = async (serviceName) => {
-  // Drive and Gmail share the same OAuth token, use Gmail endpoint for both
-  const endpoint = serviceName.toLowerCase() === 'drive' ? 'gmail' : serviceName.toLowerCase();
+  const name = serviceName.toLowerCase();
+  const endpoint = (name === 'drive' || name === 'google') ? 'gmail' : name;
 
   try {
     const response = await fetch(`${API_URL}/api/connections/${endpoint}`, {

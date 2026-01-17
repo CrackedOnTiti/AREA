@@ -48,9 +48,9 @@ const ProfilePage = () => {
 
     try {
       const token = localStorage.getItem('token');
-      
-      // Use service-specific disconnect endpoint (e.g., /api/connections/gmail)
-      const response = await fetch(`http://localhost:8080/api/connections/${serviceName}`, {
+      const endpoint = serviceName.toLowerCase() === 'google' ? 'gmail' : serviceName;
+
+      const response = await fetch(`http://localhost:8080/api/connections/${endpoint}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -83,7 +83,24 @@ const ProfilePage = () => {
     setAlertMessage('Account deletion is not yet available. Please contact support to delete your account.');
   };
 
-  const connectedServices = connections.filter(c => c.is_connected);
+  const gmailConnection = connections.find(c => c.service_name?.toLowerCase() === 'gmail' && c.is_connected);
+  const driveConnection = connections.find(c => c.service_name?.toLowerCase() === 'drive' && c.is_connected);
+  const googleConnected = gmailConnection && driveConnection;
+
+  const otherConnectedServices = connections.filter(c => {
+    const name = c.service_name?.toLowerCase();
+    if (name === 'gmail' || name === 'drive') return false;
+    return c.is_connected;
+  });
+
+  const connectedServices = googleConnected
+    ? [...otherConnectedServices, {
+        service_id: 'google',
+        service_name: 'google',
+        display_name: 'Google',
+        connected_at: gmailConnection.connected_at
+      }]
+    : otherConnectedServices;
 
   return (
     <Layout>

@@ -18,16 +18,17 @@ const DashboardPage = () =>
   const totalWorkflows = workflows.length;
   const activeWorkflows = workflows.filter(w => w.is_active).length;
 
-  // Gmail and Drive share the same OAuth token - both must be connected for either to count
   const gmailConnected = connections.find(c => c.service_name?.toLowerCase() === 'gmail')?.is_connected;
   const driveConnected = connections.find(c => c.service_name?.toLowerCase() === 'drive')?.is_connected;
-  const googleFullyConnected = gmailConnected && driveConnected;
+  const googleConnected = gmailConnected && driveConnected;
 
-  const connectedServices = connections.filter(c => {
+  const otherConnectedServices = connections.filter(c => {
     const name = c.service_name?.toLowerCase();
-    if (name === 'gmail' || name === 'drive') return googleFullyConnected;
+    if (name === 'gmail' || name === 'drive') return false;
     return c.is_connected;
   }).length;
+
+  const connectedServices = otherConnectedServices + (googleConnected ? 1 : 0);
 
   const recentWorkflows = workflows.slice(0, 3);
 

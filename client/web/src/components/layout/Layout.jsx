@@ -64,6 +64,14 @@ const Layout = ({ children }) =>
         <div className="p-5 h-full flex flex-col">
 
           <button
+            onClick={toggleMenu}
+            className="self-end text-white text-2xl mb-5 hover:text-gray-300 transition-colors focus:outline-none"
+            aria-label="Close menu"
+          >
+            ✕
+          </button>
+
+          <button
             onClick={() => navigateTo('/dashboard')}
             className="text-white text-lg font-bold text-left mb-5 hover:text-gray-300 transition-colors"
           >

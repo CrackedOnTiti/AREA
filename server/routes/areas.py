@@ -199,10 +199,13 @@ def delete_area(current_user, area_id):
     if not area:
         return jsonify({'error': 'Workflow not found'}), 404
 
-    # Verify ownership (admin can delete any workflow)
+    # Verify ownership != admin
     is_admin = current_user.id == 1 and current_user.username == 'admin'
     if area.user_id != current_user.id and not is_admin:
         return jsonify({'error': 'Unauthorized access to this workflow'}), 403
+
+    # Delete associated workflow logs first
+    WorkflowLog.query.filter_by(area_id=area_id).delete()
 
     db.session.delete(area)
     db.session.commit()
@@ -219,8 +222,10 @@ def reset_all_areas(current_user):
 
     count = len(areas)
 
-    # Delete all workflows
+    # Delete all workflows and their logs
     for area in areas:
+        # Delete associated workflow logs first
+        WorkflowLog.query.filter_by(area_id=area.id).delete()
         db.session.delete(area)
 
     db.session.commit()

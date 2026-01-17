@@ -5,11 +5,10 @@ import os
 bind = "0.0.0.0:8080"
 
 # Worker configuration
-workers = int(os.getenv("GUNICORN_WORKERS", multiprocessing.cpu_count() * 2 + 1))
+# Using 1 worker to avoid scheduler duplication issues
+# See GitHub issue for future improvement: move scheduler to separate container
+workers = int(os.getenv("GUNICORN_WORKERS", 1))
 worker_class = "sync"
-
-# Preload app before forking workers
-preload_app = True
 worker_connections = 1000
 
 timeout = 120

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { getCurrentUser } from '../services/authService';
 
 const OAuthCallbackPage = () =>
 {
@@ -25,9 +26,18 @@ const OAuthCallbackPage = () =>
 
       localStorage.setItem('token', token);
 
-      setTimeout(() => {
-        window.location.href = '/dashboard';
-      }, 1500);
+      getCurrentUser()
+        .then(() => {
+          setTimeout(() => {
+            window.location.href = '/dashboard';
+          }, 1500);
+        })
+        .catch((err) => {
+          setMessage(`Failed to fetch user data: ${err.message}`);
+          setTimeout(() => {
+            navigate('/login');
+          }, 3000);
+        });
     }
     else
     {

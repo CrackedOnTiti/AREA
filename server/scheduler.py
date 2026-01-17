@@ -155,10 +155,11 @@ def check_drive_new_file(area: UserArea) -> dict:
 
     # Check each file
     for file in files:
-        # Check if we've already processed this file
-        existing_log = WorkflowLog.query.filter_by(
-            area_id=area.id,
-            message=f"New file: {file['name']}"
+        # Check if we've already processed this file (otherwise multiple files in a folder cause email spamming)
+        # Use LIKE query to match the file ID anywhere in the message
+        existing_log = WorkflowLog.query.filter(
+            WorkflowLog.area_id == area.id,
+            WorkflowLog.message.contains(file['id'])
         ).first()
 
         if existing_log:
@@ -740,7 +741,7 @@ def check_and_execute_workflows(app):
                         should_trigger = result.get('triggered', False)
                         if should_trigger:
                             file_data = result.get('file_data')
-                            trigger_metadata = f"New file: {file_data['name']}"
+                            trigger_metadata = f"New file: {file_data['name']} (id:{file_data['id']})"
 
                     elif action.name in ['new_post_created', 'post_contains_keyword']:
                         result = check_facebook_new_post(area)

@@ -157,12 +157,18 @@ const CreateWorkflowPage = () =>
       setSubmitting(true);
       setError(null);
 
+      let finalActionConfig = { ...actionConfig };
+      if (selectedAction?.name === 'time_matches')
+      {
+        finalActionConfig.timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      }
+
       const areaData = {
         name: workflowName,
         description: workflowDescription,
         action_id: selectedAction.id,
         reaction_id: selectedReaction.id,
-        action_config: actionConfig,
+        action_config: finalActionConfig,
         reaction_config: reactionConfig
       };
 

@@ -54,8 +54,14 @@ def check_time_matches(area: UserArea) -> bool:
         print(f"Warning: Area {area.id} missing time config")
         return False
 
-    # Get current time in configured timezone (defaults to UTC)
-    tz = ZoneInfo(Config.SCHEDULER_TIMEZONE)
+    # Get user's timezone from config, fallback to server default
+    user_timezone = area.action_config.get('timezone', Config.SCHEDULER_TIMEZONE)
+    try:
+        tz = ZoneInfo(user_timezone)
+    except Exception:
+        tz = ZoneInfo(Config.SCHEDULER_TIMEZONE)
+
+    # Get current time in user's timezone
     now = datetime.now(tz)
     current_time = now.strftime('%H:%M')
 

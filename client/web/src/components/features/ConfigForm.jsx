@@ -3,6 +3,8 @@ import TextInput from '../ui/inputs/TextInput';
 import NumberInput from '../ui/inputs/NumberInput';
 import SelectInput from '../ui/inputs/SelectInput';
 import CheckboxInput from '../ui/inputs/CheckboxInput';
+import TimeInput from '../ui/inputs/TimeInput';
+import IntervalInput from '../ui/inputs/IntervalInput';
 
 
 const ConfigForm = ({ schema, config, onChange }) =>
@@ -61,6 +63,20 @@ const ConfigField = ({ fieldKey, prop, isRequired, value, onChange }) =>
 };
 
 
+const isTimeField = (key, prop) =>
+{
+  if (key === 'time') return true;
+  if (prop.pattern && prop.pattern.includes('[0-2]') && prop.pattern.includes('[0-5]')) return true;
+  return false;
+};
+
+
+const isIntervalField = (key) =>
+{
+  return key.toLowerCase().includes('interval');
+};
+
+
 const InputField = ({ prop, value, onChange, fieldKey }) =>
 {
   if (prop.type === 'string' && prop.enum)
@@ -75,6 +91,16 @@ const InputField = ({ prop, value, onChange, fieldKey }) =>
     );
   }
 
+  if (prop.type === 'string' && isTimeField(fieldKey, prop))
+  {
+    return (
+      <TimeInput
+        value={value}
+        onChange={onChange}
+      />
+    );
+  }
+
   if (prop.type === 'string')
   {
     const inputType = prop.format === 'email' ? 'email' : 'text';
@@ -84,6 +110,16 @@ const InputField = ({ prop, value, onChange, fieldKey }) =>
         onChange={onChange}
         placeholder={prop.default || ''}
         type={inputType}
+      />
+    );
+  }
+
+  if ((prop.type === 'integer' || prop.type === 'number') && isIntervalField(fieldKey))
+  {
+    return (
+      <IntervalInput
+        value={value}
+        onChange={onChange}
       />
     );
   }

@@ -84,3 +84,23 @@ export const toggleArea = async (areaId) => {
     throw error;
   }
 };
+
+export const updateArea = async (areaId, data) => {
+  try {
+    const response = await fetch(`${API_URL}/api/areas/${areaId}`, {
+      method: 'PATCH',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(data)
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to update workflow');
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Update area error:', error);
+    throw error;
+  }
+};

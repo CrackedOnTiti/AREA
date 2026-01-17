@@ -16,22 +16,15 @@ def get_all_users(current_user):
     result = []
 
     for user in users:
-        # Get user's workflows
+        # Get user's workflows with full details
         workflows = UserArea.query.filter_by(user_id=user.id).all()
-        workflow_list = []
-
-        for workflow in workflows:
-            workflow_list.append({
-                'id': workflow.id,
-                'name': workflow.name,
-                'is_active': workflow.is_active,
-                'created_at': workflow.created_at.isoformat() if workflow.created_at else None,
-            })
+        workflow_list = [workflow.to_dict() for workflow in workflows]
 
         result.append({
             'id': user.id,
             'username': user.username,
             'email': user.email,
+            'oauth_provider': user.oauth_provider,
             'created_at': user.created_at.isoformat() if user.created_at else None,
             'workflow_count': len(workflows),
             'workflows': workflow_list,

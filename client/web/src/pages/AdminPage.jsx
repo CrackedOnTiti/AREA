@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Layout from '../components/layout/Layout';
 import { getAllUsers } from '../services/adminService';
+import { deleteArea } from '../services/areasService';
 
 
 const AdminPage = () => {
@@ -27,6 +28,18 @@ const AdminPage = () => {
 
   const toggleExpand = (userId) => {
     setExpandedUserId(expandedUserId === userId ? null : userId);
+  };
+
+  const handleDeleteWorkflow = async (workflowId) => {
+    if (!window.confirm('Are you sure you want to delete this workflow?')) {
+      return;
+    }
+    try {
+      await deleteArea(workflowId);
+      await fetchUsers();
+    } catch (err) {
+      setError(err.message);
+    }
   };
 
   const totalUsers = users.length;
@@ -61,6 +74,7 @@ const AdminPage = () => {
           loading={loading}
           expandedUserId={expandedUserId}
           onToggleExpand={toggleExpand}
+          onDeleteWorkflow={handleDeleteWorkflow}
         />
 
       </div>
@@ -104,7 +118,7 @@ const StatCard = ({ label, value }) => {
 };
 
 
-const UsersSection = ({ users, loading, expandedUserId, onToggleExpand }) => {
+const UsersSection = ({ users, loading, expandedUserId, onToggleExpand, onDeleteWorkflow }) => {
   return (
     <section>
       <h2 className="text-xl font-semibold text-white mb-4">
@@ -124,6 +138,7 @@ const UsersSection = ({ users, loading, expandedUserId, onToggleExpand }) => {
               isLast={index === users.length - 1}
               isExpanded={expandedUserId === user.id}
               onToggle={() => onToggleExpand(user.id)}
+              onDeleteWorkflow={onDeleteWorkflow}
             />
           ))}
         </div>
@@ -142,7 +157,7 @@ const EmptyState = () => {
 };
 
 
-const UserRow = ({ user, isLast, isExpanded, onToggle }) => {
+const UserRow = ({ user, isLast, isExpanded, onToggle, onDeleteWorkflow }) => {
   const isAdmin = user.id === 1;
 
   return (
@@ -170,7 +185,7 @@ const UserRow = ({ user, isLast, isExpanded, onToggle }) => {
       </div>
 
       {isExpanded && (
-        <UserDetails user={user} />
+        <UserDetails user={user} onDeleteWorkflow={onDeleteWorkflow} />
       )}
 
     </div>
@@ -196,7 +211,7 @@ const ExpandIcon = ({ isExpanded }) => {
 };
 
 
-const UserDetails = ({ user }) => {
+const UserDetails = ({ user, onDeleteWorkflow }) => {
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A';
     return new Date(dateString).toLocaleDateString();
@@ -212,7 +227,7 @@ const UserDetails = ({ user }) => {
       </div>
 
       {user.workflows.length > 0 ? (
-        <WorkflowList workflows={user.workflows} />
+        <WorkflowList workflows={user.workflows} onDeleteWorkflow={onDeleteWorkflow} />
       ) : (
         <p className="text-gray-500 text-sm">No workflows created</p>
       )}
@@ -222,13 +237,13 @@ const UserDetails = ({ user }) => {
 };
 
 
-const WorkflowList = ({ workflows }) => {
+const WorkflowList = ({ workflows, onDeleteWorkflow }) => {
   return (
     <div>
       <p className="text-gray-400 text-sm mb-2">Workflows:</p>
       <div className="space-y-2">
         {workflows.map((workflow) => (
-          <WorkflowItem key={workflow.id} workflow={workflow} />
+          <WorkflowItem key={workflow.id} workflow={workflow} onDelete={onDeleteWorkflow} />
         ))}
       </div>
     </div>
@@ -236,10 +251,15 @@ const WorkflowList = ({ workflows }) => {
 };
 
 
-const WorkflowItem = ({ workflow }) => {
+const WorkflowItem = ({ workflow, onDelete }) => {
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A';
     return new Date(dateString).toLocaleDateString();
+  };
+
+  const handleDelete = (e) => {
+    e.stopPropagation();
+    onDelete(workflow.id);
   };
 
   return (
@@ -248,9 +268,18 @@ const WorkflowItem = ({ workflow }) => {
         <div className={`w-2 h-2 rounded-full ${workflow.is_active ? 'bg-green-500' : 'bg-gray-500'}`} />
         <span className="text-white text-sm">{workflow.name}</span>
       </div>
-      <span className="text-gray-500 text-xs">
-        {formatDate(workflow.created_at)}
-      </span>
+      <div className="flex items-center gap-3">
+        <span className="text-gray-500 text-xs">
+          {formatDate(workflow.created_at)}
+        </span>
+        <button
+          onClick={handleDelete}
+          className="text-red-500 hover:text-red-400 text-sm transition-colors"
+          aria-label="Delete workflow"
+        >
+          Delete
+        </button>
+      </div>
     </div>
   );
 };

@@ -1148,6 +1148,95 @@ curl -X GET "http://localhost:8080/api/areas/1/logs?page=2&per_page=20" \
 
 ---
 
+## Admin Endpoints
+
+### `GET /api/admin/users`
+
+**Description:**
+Get all users with their workflows. Only accessible by the admin user (user ID 1).
+
+**Authentication:** Required (Bearer token - Admin only)
+
+**Request Headers:**
+```
+Authorization: Bearer <token>
+```
+
+**Success Response (200 OK):**
+```json
+{
+  "users": [
+    {
+      "id": 1,
+      "username": "admin",
+      "email": "admin@example.com",
+      "oauth_provider": null,
+      "created_at": "2025-11-27T17:54:14.738713",
+      "workflow_count": 3,
+      "workflows": [
+        {
+          "id": 1,
+          "name": "Daily Reminder",
+          "action": {
+            "id": 1,
+            "name": "time_matches",
+            "display_name": "Time Matches",
+            "service": "Timer"
+          },
+          "reaction": {
+            "id": 1,
+            "name": "send_email",
+            "display_name": "Send Email",
+            "service": "Email"
+          },
+          "is_active": true,
+          "last_triggered": "2025-12-15T14:00:05Z",
+          "created_at": "2025-12-15T10:30:00Z"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "username": "alice",
+      "email": "alice@example.com",
+      "oauth_provider": "google",
+      "created_at": "2025-12-01T09:00:00.000000",
+      "workflow_count": 2,
+      "workflows": []
+    }
+  ]
+}
+```
+
+**Response Fields:**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `users` | array | List of all users in the system |
+| `users[].id` | integer | User database ID |
+| `users[].username` | string | User's username |
+| `users[].email` | string | User's email address |
+| `users[].oauth_provider` | string/null | OAuth provider if user registered via OAuth ("google", "facebook", or null) |
+| `users[].created_at` | string | ISO 8601 timestamp of account creation |
+| `users[].workflow_count` | integer | Number of workflows this user has |
+| `users[].workflows` | array | List of user's workflows with full details |
+
+**Error Responses:**
+
+| Status | Error | Description |
+|--------|-------|-------------|
+| 401 | Authorization token is missing | No Authorization header provided |
+| 401 | Invalid or expired token | Token is invalid or has expired |
+| 403 | Admin access required | User is not the admin |
+
+**Example:**
+```bash
+curl -X GET http://localhost:8080/api/admin/users \
+  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+```
+
+---
+
 ## Related Documentation
 
 - [Authentication](./api-authentication.md)

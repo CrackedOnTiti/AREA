@@ -482,7 +482,7 @@ Authorization: Bearer <token>
 
 | Status | Error | Description |
 |--------|-------|-------------|
-| 400 | Missing required field: <field> | Required field not provided |
+| 400 | Missing required field: `<field>` | Required field not provided |
 | 401 | Authorization token is missing | No Authorization header provided |
 | 401 | Invalid or expired token | Token is invalid or has expired |
 | 404 | Action not found | action_id doesn't exist |

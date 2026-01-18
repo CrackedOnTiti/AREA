@@ -238,7 +238,7 @@ Handles the OAuth2 callback from Google after user authorization. This endpoint 
 |--------|-------|-------------|
 | 400 | Invalid session | Session expired or user_id not found in session |
 | 404 | Gmail service not found | Gmail service not configured in database |
-| 500 | OAuth failed: <details> | OAuth token exchange failed or other error |
+| 500 | OAuth failed: `<details>` | OAuth token exchange failed or other error |
 
 **Example:**
 ```bash
@@ -390,7 +390,7 @@ Handles the OAuth2 callback from Facebook after user authorization. This endpoin
 |--------|-------|-------------|
 | 400 | Invalid session | Session expired or user_id not found in session |
 | 404 | Facebook service not found | Facebook service not configured in database |
-| 500 | OAuth failed: <details> | OAuth token exchange failed or other error |
+| 500 | OAuth failed: `<details>` | OAuth token exchange failed or other error |
 
 **Example:**
 ```bash
@@ -542,7 +542,7 @@ Handles the OAuth2 callback from GitHub after user authorization. This endpoint 
 |--------|-------|-------------|
 | 400 | Invalid session | Session expired or user_id not found in session |
 | 404 | GitHub service not found | GitHub service not configured in database |
-| 500 | OAuth failed: <details> | OAuth token exchange failed or other error |
+| 500 | OAuth failed: `<details>` | OAuth token exchange failed or other error |
 
 **Example:**
 ```bash
@@ -697,12 +697,12 @@ Handles the OAuth2 callback from Spotify after user authorization. This endpoint
 
 | Status | Error | Description |
 |--------|-------|-------------|
-| 400 | OAuth error: <error> | User denied authorization or other OAuth error |
+| 400 | OAuth error: `<error>` | User denied authorization or other OAuth error |
 | 400 | Missing authorization code or state | Required parameters not provided |
 | 400 | Invalid or expired OAuth state | State token is invalid or expired |
 | 404 | Spotify service not found | Spotify service not configured in database |
-| 500 | Token exchange failed: <details> | Failed to exchange code for access token |
-| 500 | OAuth failed: <details> | Other OAuth-related error |
+| 500 | Token exchange failed: `<details>` | Failed to exchange code for access token |
+| 500 | OAuth failed: `<details>` | Other OAuth-related error |
 
 **Example:**
 ```bash

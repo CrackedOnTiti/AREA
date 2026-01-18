@@ -281,7 +281,7 @@ Handles the OAuth2 callback from Google after user authentication.
 |--------|-------|-------------|
 | 400 | Failed to get user info from Google | OAuth token exchange failed |
 | 400 | Missing required user information from Google | Google didn't provide email or user ID |
-| 400 | OAuth authentication failed: <details> | General OAuth error (network, invalid code, etc.) |
+| 400 | OAuth authentication failed: `<details>` | General OAuth error (network, invalid code, etc.) |
 
 **Example:**
 ```bash

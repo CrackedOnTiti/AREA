@@ -105,6 +105,20 @@ const Layout = ({ children }) =>
             Profile
           </button>
 
+          <div className="border-t border-white my-5" />
+
+          <div className="mb-5">
+            <p className="text-white text-lg font-bold mb-3">Mobile App</p>
+            <a
+              href="/client.apk"
+              download="area-client.apk"
+              className="inline-block w-full py-2 px-4 bg-green-600 text-white text-center font-semibold hover:bg-green-500 transition-colors mb-2"
+            >
+              Download for Android
+            </a>
+            <p className="text-gray-400 text-sm">iOS version coming soon</p>
+          </div>
+
           {isAdmin && (
             <>
               <div className="border-t border-white my-5" />

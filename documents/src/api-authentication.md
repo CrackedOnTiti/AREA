@@ -291,6 +291,263 @@ Handles the OAuth2 callback from Google after user authentication.
 
 ---
 
+### `PATCH /api/auth/me`
+
+**Description:**
+Update current authenticated user's profile information.
+
+**Authentication:** Required (Bearer token)
+
+**Request Headers:**
+```
+Authorization: Bearer <token>
+```
+
+**Request Body:**
+```json
+{
+  "email": "string"
+}
+```
+
+**Request Fields:**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `email` | string | No | New email address |
+
+**Success Response (200 OK):**
+```json
+{
+  "message": "Profile updated successfully",
+  "user": {
+    "id": 1,
+    "username": "alice",
+    "email": "newemail@example.com",
+    "created_at": "2025-11-27T17:54:14.738713",
+    "updated_at": "2025-11-27T18:30:00.000000"
+  }
+}
+```
+
+**Error Responses:**
+
+| Status | Error | Description |
+|--------|-------|-------------|
+| 400 | No data provided | Request body is empty |
+| 400 | Email cannot be empty | Email field is empty string |
+| 401 | Authorization token is missing | No Authorization header provided |
+| 401 | Invalid or expired token | Token is invalid or has expired |
+| 409 | Email already in use | Email is already taken by another user |
+
+**Example:**
+```bash
+curl -X PATCH http://localhost:8080/api/auth/me \
+  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "newemail@example.com"
+  }'
+```
+
+---
+
+### `DELETE /api/auth/me`
+
+**Description:**
+Delete current user's account and all associated data (workflows, service connections, logs).
+
+**Authentication:** Required (Bearer token)
+
+**Request Headers:**
+```
+Authorization: Bearer <token>
+```
+
+**Request Body:**
+None required
+
+**Success Response (200 OK):**
+```json
+{
+  "message": "Account deleted successfully"
+}
+```
+
+**Error Responses:**
+
+| Status | Error | Description |
+|--------|-------|-------------|
+| 401 | Authorization token is missing | No Authorization header provided |
+| 401 | Invalid or expired token | Token is invalid or has expired |
+| 403 | Admin account cannot be deleted | Cannot delete the admin account |
+
+**Example:**
+```bash
+curl -X DELETE http://localhost:8080/api/auth/me \
+  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+```
+
+---
+
+### `GET /api/auth/facebook/login`
+
+**Description:**
+Initiates Facebook OAuth2 authentication flow by redirecting to Facebook's consent screen. This endpoint is used to **sign in to AREA** using a Facebook account.
+
+> **Note:** This is different from `/api/connections/facebook` which is used to connect Facebook as a service for workflow automation after you've already signed into AREA.
+
+**Authentication:** Not required
+
+**Success Response (302 Redirect):**
+Redirects user to Facebook OAuth consent screen where they can authorize the application.
+
+**OAuth Scopes Requested:**
+- `email` - User's email address
+- `public_profile` - User's basic profile information (name, picture)
+
+**Example:**
+```bash
+# In browser, navigate to:
+http://localhost:8080/api/auth/facebook/login
+```
+
+---
+
+### `GET /api/auth/facebook/callback`
+
+**Description:**
+Handles the OAuth2 callback from Facebook after user authentication.
+
+**Authentication:** Not required (callback from Facebook)
+
+**Query Parameters:**
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `code` | string | Yes | Authorization code from Facebook |
+| `state` | string | Yes | CSRF protection token |
+
+**Success Response (302 Redirect):**
+Redirects to frontend with JWT token:
+```
+http://localhost:8081/oauth/callback?token=<jwt>&success=true&service=facebook
+```
+
+**Response Fields:**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `token` | string | JWT authentication token (in URL parameter) |
+| `success` | string | "true" on successful authentication |
+| `service` | string | "facebook" |
+
+> **Note:** Users created via OAuth login will have the `oauth_provider` field set. These accounts cannot use traditional password login and must use the OAuth flow.
+
+**Error Response (302 Redirect):**
+Redirects to frontend with error:
+```
+http://localhost:8081/oauth/callback?error=<error_message>
+```
+
+**Example:**
+```bash
+# This endpoint is called automatically by Facebook after user consent
+# You cannot call it directly - it requires valid OAuth state and code
+```
+
+---
+
+### `POST /api/auth/forgot-password`
+
+**Description:**
+Request a password reset email. For security, always returns success message regardless of whether the email exists.
+
+**Authentication:** Not required
+
+**Request Body:**
+```json
+{
+  "email": "string"
+}
+```
+
+**Success Response (200 OK):**
+```json
+{
+  "message": "If an account with that email exists, a password reset link has been sent"
+}
+```
+
+**Error Responses:**
+
+| Status | Error | Description |
+|--------|-------|-------------|
+| 400 | Email is required | No email provided in request |
+| 500 | Failed to send reset email | SMTP error occurred |
+
+**Example:**
+```bash
+curl -X POST http://localhost:8080/api/auth/forgot-password \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "alice@example.com"
+  }'
+```
+
+---
+
+### `POST /api/auth/reset-password`
+
+**Description:**
+Reset password using a token received via email.
+
+**Authentication:** Not required
+
+**Request Body:**
+```json
+{
+  "token": "string",
+  "password": "string"
+}
+```
+
+**Request Fields:**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `token` | string | Yes | Reset token from email |
+| `password` | string | Yes | New password (min 8 chars, requires uppercase, lowercase, special char) |
+
+**Success Response (200 OK):**
+```json
+{
+  "message": "Password successfully reset. You can now log in with your new password."
+}
+```
+
+**Error Responses:**
+
+| Status | Error | Description |
+|--------|-------|-------------|
+| 400 | Token and password are required | Missing required fields |
+| 400 | Password must be at least 8 characters | Password too short |
+| 400 | Password is too long | Password exceeds 128 characters |
+| 400 | Password requires a lowercase, uppercase and special character | Password doesn't meet complexity |
+| 400 | Invalid or expired reset token | Token is invalid or has expired |
+
+**Example:**
+```bash
+curl -X POST http://localhost:8080/api/auth/reset-password \
+  -H "Content-Type: application/json" \
+  -d '{
+    "token": "abc123def456",
+    "password": "NewSecurePass123!"
+  }'
+```
+
+---
+
 ## Related Documentation
 
 - [OAuth2 Implementation](./oauth-implementation.md)

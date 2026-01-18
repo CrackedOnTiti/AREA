@@ -109,7 +109,7 @@ db.session.add(reaction)
 
 ### 4. Implement Action Checker
 
-Create a checker function in `server/scheduler.py`:
+Create a checker function in `server/scheduler/actions.py`:
 
 ```python
 def check_your_action(area: UserArea) -> dict:
@@ -128,7 +128,7 @@ def check_your_action(area: UserArea) -> dict:
     return {'triggered': False}
 ```
 
-Then add it to the main scheduler loop:
+Then add it to the main scheduler loop in `server/scheduler/core.py`:
 
 ```python
 # In check_and_execute_workflows()
@@ -137,9 +137,14 @@ elif action.name == 'your_action':
     should_trigger = result.get('triggered', False)
 ```
 
+Don't forget to import your function in `core.py`:
+```python
+from .actions import check_your_action
+```
+
 ### 5. Implement Reaction Executor
 
-Create an executor function in `server/scheduler.py`:
+Create an executor function in `server/scheduler/reactions.py`:
 
 ```python
 def execute_your_reaction(area: UserArea) -> dict:
@@ -163,7 +168,7 @@ def execute_your_reaction(area: UserArea) -> dict:
         }
 ```
 
-Then route to it in the executor:
+Then route to it in `execute_reaction()` (same file):
 
 ```python
 # In execute_reaction()

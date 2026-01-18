@@ -78,7 +78,7 @@ docker-compose down -v
 
 | Member | Role | Responsibilities |
 |--------|------|------------------|
-| **Aurelien P.** | Web Profile Page | React, Tailwind |
+| **Aurelien P.** | Web Profile Page & Documentation Front | React, Tailwind |
 | **Thierry B.** | Backend Lead & Apk Front Lead| Python/Flask backend, Postgresql, Docker, Gunicorn, Flutter, Documentation |
 | **Aymeric L.** | Web Front Lead | React, Tailwind, Debugging, Testing |
 

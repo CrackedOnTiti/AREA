@@ -71,9 +71,11 @@ services:
       - SCHEDULER_TIMEZONE=${SCHEDULER_TIMEZONE}
     volumes:
       - ./server:/app
+      - mobile_build:/mobile_build
     depends_on:
       - database
       - init_db
+      - client_mobile
 
   client_mobile:
     build:

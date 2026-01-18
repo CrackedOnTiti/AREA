@@ -9,7 +9,7 @@
 AREA (Action-REAction) is an automation platform similar to IFTTT or Zapier. It allows users to create automated workflows by connecting different services through triggers (Actions) and automated responses (REActions).
 
 ### Key Features
-- **Service Integration**: Connect to multiple external services (Google(gmail & drive), Facebook, Github and Spotify)
+- **Service Integration**: Connect to multiple external services (Google (Gmail & Drive), Facebook, GitHub and Spotify)
 - **Automation Workflows**: Create AREAs that link Actions to REActions
 - **Multi-Platform**: Access via web browser or Android mobile app
 - **REST API**: Complete backend API for all operations
@@ -50,6 +50,11 @@ See [Tech Stack Documentation](https://crackedontiti.github.io/AREA/tech-stack.h
 ### Clone the Repository
 
 ```bash
+# Public repository
+git clone https://github.com/CrackedOnTiti/AREA.git
+cd AREA
+
+# Or Epitech repository
 git clone https://github.com/EpitechPGE3-2025/G-DEV-500-TLS-5-2-area-3
 cd G-DEV-500-TLS-5-2-area-3
 ```
@@ -88,8 +93,8 @@ docker-compose down -v
 - [Documentation](https://crackedontiti.github.io/AREA/)
 
 **Quick Links:**
-- Architecture Overview
-- Tech Stack Details
-- Data Management
-- Contribution Guide
-- Team & Credits
+- [Architecture Overview](https://crackedontiti.github.io/AREA/architecture.html)
+- [Tech Stack Details](https://crackedontiti.github.io/AREA/tech-stack.html)
+- [Configuration](https://crackedontiti.github.io/AREA/configuration.html)
+- [Contribution Guide](https://crackedontiti.github.io/AREA/contributing.html)
+- [API Reference](https://crackedontiti.github.io/AREA/api-authentication.html)

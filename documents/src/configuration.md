@@ -258,15 +258,12 @@ SCHEDULER_CHECK_INTERVAL_MINUTES=1
 
 **Required:** No
 
-**Default:** `UTC`
+**Default:** `Europe/Paris`
 
 **Format:** [IANA timezone](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones)
 
 **Example:**
 ```bash
-# UTC
-SCHEDULER_TIMEZONE=UTC
-
 # Paris time
 SCHEDULER_TIMEZONE=Europe/Paris
 
@@ -337,6 +334,18 @@ CORS_ORIGINS=*
 GOOGLE_CLIENT_ID=your-client-id.apps.googleusercontent.com
 GOOGLE_CLIENT_SECRET=your-client-secret
 
+# Meta OAuth2 Configuration (get from Facebook Developer Console)
+FACEBOOK_CLIENT_ID=your-facebook-app-id
+FACEBOOK_CLIENT_SECRET=your-facebook-app-secret
+
+# GitHub OAuth2 Configuration (get from GitHub Developer Settings)
+GITHUB_CLIENT_ID=your-github-client-id
+GITHUB_CLIENT_SECRET=your-github-client-secret
+
+# Spotify OAuth2 Configuration (get from Spotify Developer Dashboard)
+SPOTIFY_CLIENT_ID=your-spotify-client-id
+SPOTIFY_CLIENT_SECRET=your-spotify-client-secret
+
 # SMTP Email Configuration
 SMTP_HOST=smtp-mail.outlook.com
 SMTP_PORT=587
@@ -348,7 +357,7 @@ SMTP_USE_TLS=true
 # Scheduler Configuration
 SCHEDULER_ENABLED=true
 SCHEDULER_CHECK_INTERVAL_MINUTES=1
-SCHEDULER_TIMEZONE=UTC
+SCHEDULER_TIMEZONE=Europe/Paris
 ```
 
 ---

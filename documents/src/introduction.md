@@ -28,7 +28,7 @@ The AREA project consists of three main components:
    - Service configuration
    - AREA creation and management
 
-3. **Mobile Client** (React Native Android APK)
+3. **Mobile Client** (Flutter Android APK)
    - Native Android application
    - Same functionality as web client
    - Available for download from web client
@@ -75,19 +75,29 @@ Optional (for local development without Docker):
 
 ```
 AREA/
-├── server/              # Flask backend
-│   ├── app.py           # Main application
-│   ├── routes/          # API endpoints
-│   └── Dockerfile
 ├── client/
 │   ├── web/             # React web client
-│   ├── mobile/          # React Native mobile app
-│   ├── Dockerfile.web
+│   ├── apk/             # Flutter mobile app
 │   └── Dockerfile.mobile
-├── database/            # Database migrations
-│   └── models.py        # Database models
+│   ├── Dockerfile.web
 ├── documents/           # mdBook documentation
+├── server/              # Flask backend
+│   ├── database/        # Database models
+│   ├── routes/          # API endpoints
+│   ├── scheduler/       # Core workflow activator
+│   ├── static/          # Assets
+│   ├── utils/           # Helper functions
+│   ├── app.py           # Main application
+│   ├── config.py        # Environment configuration
+│   ├── Dockerfile
+│   ├── gunicorn.conf.py # Gunicorn configuration
+│   ├── init_db.py       # Database preperator/seed_data.py caller
+│   ├── requirements.txt # Python environment dependecies
+│   └── seed_data.py     # Mandatory data implant
+├── .env.example
+├── .gitignore
 ├── docker-compose.yml   # Multi-container orchestration
+├── HOWTOCONTRIBUTE.md
 └── README.md
 
 ```

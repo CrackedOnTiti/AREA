@@ -1,8 +1,11 @@
 # Summary
 
 [Introduction](./introduction.md)
+[Contributing](./contributing.md)
 [Tech Stack](./tech-stack.md)
 [Configuration](./configuration.md)
+[SMTP Setup](./smtp.md)
+[Deployment & Server](./deployment.md)
 [Architecture & Diagrams](./architecture.md)
 
 # Web Client
@@ -12,6 +15,10 @@
 - [Components](./web-client-components.md)
 - [Pages](./web-client-pages.md)
 - [API Integration](./web-client-api.md)
+
+# Mobile Client
+
+- [Overview](./mobile-client.md)
 
 # API Routes
 

@@ -8,9 +8,8 @@ AREA (Action-REAction) is an automation platform that connects different service
 
 ### Example Use Cases
 
-- **Email to Cloud**: Automatically save email attachments to OneDrive
-- **GitHub to Teams**: Send a Teams message when an issue is created on GitHub
-- **Weather Alerts**: Get notified when temperature drops below a threshold
+- **Facebook to Spotify**: Automatically send a post to Facebook as soon as you start playing music
+- **GitHub to Gmail**: Send a email when an issue is created on GitHub
 - **Time-based Actions**: Execute tasks at specific dates or times
 
 ## Architecture
@@ -76,8 +75,8 @@ Optional (for local development without Docker):
 ```
 AREA/
 ├── client/
-│   ├── web/             # React web client
 │   ├── apk/             # Flutter mobile app
+│   ├── web/             # React web client
 │   └── Dockerfile.mobile
 │   ├── Dockerfile.web
 ├── documents/           # mdBook documentation

@@ -7,7 +7,7 @@ This document outlines the technologies, frameworks, and tools used in the AREA 
 │           Frontend Layer                │
 ├─────────────────┬───────────────────────┤
 │   Web Client    │    Mobile Client      │
-│   React         │    React Native       │
+│   React         │    Flutter            │
 │   Port 8081     │    Android APK        │
 └────────┬────────┴──────────┬────────────┘
          │                   │
@@ -142,7 +142,7 @@ The Flask server exposes a RESTful API for client communication:
 
 ### Data Format
 - **Request/Response**: JSON
-- **Authentication**: JWT tokens (to be implemented)
+- **Authentication**: JWT tokens
 - **CORS**: Enabled for cross-origin requests
 
 ---
@@ -151,6 +151,6 @@ The Flask server exposes a RESTful API for client communication:
 
 - [Flask Documentation](https://flask.palletsprojects.com/)
 - [React Documentation](https://react.dev/)
-- [React Native Documentation](https://reactnative.dev/)
+- [Flutter Documentation](https://docs.flutter.dev/)
 - [PostgreSQL Documentation](https://www.postgresql.org/docs/)
 - [Docker Documentation](https://docs.docker.com/)

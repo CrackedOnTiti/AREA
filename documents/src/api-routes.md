@@ -325,20 +325,11 @@ Returns information about the server, client, and all available services with th
             "description": "Triggers when current time matches HH:MM pattern"
           },
           {
-            "name": "date_matches",
-            "description": "Triggers when current date matches DD/MM pattern"
+            "name": "interval_elapsed",
+            "description": "Triggers every X minutes"
           }
         ],
-        "reactions": [
-          {
-            "name": "send_notification",
-            "description": "Sends a notification message"
-          },
-          {
-            "name": "log_message",
-            "description": "Logs a message to the console"
-          }
-        ]
+        "reactions": []
       }
     ]
   }

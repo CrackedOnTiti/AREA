@@ -226,15 +226,15 @@ Spotify service provides automation for music playback, playlist management, and
 **Example Workflow:**
 ```json
 {
-  "name": "Monthly Playlist Creator",
-  "action_id": <date_matches_id>,
+  "name": "Weekly Playlist Creator",
+  "action_id": <time_matches_id>,
   "reaction_id": <create_playlist_id>,
   "action_config": {
-    "date": "01/01"
+    "time": "00:00"
   },
   "reaction_config": {
-    "name": "January 2025 Favorites",
-    "description": "Auto-generated monthly playlist",
+    "name": "Weekly Favorites",
+    "description": "Auto-generated playlist",
     "public": false
   }
 }

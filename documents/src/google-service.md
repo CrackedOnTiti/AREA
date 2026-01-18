@@ -249,14 +249,14 @@ Google services integration provides automation for Gmail email monitoring and G
 **Example Workflow:**
 ```json
 {
-  "name": "Monthly Folder Setup",
-  "action_id": <date_matches_id>,
+  "name": "Morning Folder Setup",
+  "action_id": <time_matches_id>,
   "reaction_id": <create_folder_id>,
   "action_config": {
-    "date": "01/01"
+    "time": "09:00"
   },
   "reaction_config": {
-    "folder_name": "January 2025"
+    "folder_name": "Daily Reports"
   }
 }
 ```

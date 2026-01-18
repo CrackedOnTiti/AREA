@@ -63,7 +63,7 @@ client/apk/
 - Password validation (8+ chars, uppercase, lowercase, special char)
 - Auto-login after registration
 
-### Home Screen
+### Home Screen/Dash
 - Dashboard with active workflows
 - Quick stats and recent activity
 - Navigation to other screens

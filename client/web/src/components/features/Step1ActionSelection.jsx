@@ -9,6 +9,7 @@ import {
 
 const Step1ActionSelection = ({
   availableServices,
+  unavailableServices = [],
   selectedService,
   onServiceChange,
   selectedAction,
@@ -20,13 +21,15 @@ const Step1ActionSelection = ({
   canProceed
 }) =>
 {
+  const isUnavailableService = unavailableServices.some(s => s.name === selectedService);
+
   return (
     <div>
       <h3 className="text-2xl font-bold text-white mb-6">
         Step 1: Select Action
       </h3>
 
-      {availableServices.length === 0 && (
+      {availableServices.length === 0 && unavailableServices.length === 0 && (
         <NoServicesMessage type="actions" />
       )}
 
@@ -34,10 +37,11 @@ const Step1ActionSelection = ({
         value={selectedService}
         onChange={onServiceChange}
         services={availableServices}
-        disabled={availableServices.length === 0}
+        unavailableServices={unavailableServices}
+        disabled={availableServices.length === 0 && unavailableServices.length === 0}
       />
 
-      {selectedService && (
+      {selectedService && !isUnavailableService && (
         <ItemDropdown
           label="Action"
           value={selectedAction?.id || ''}
@@ -48,7 +52,7 @@ const Step1ActionSelection = ({
         />
       )}
 
-      {selectedAction && selectedAction.config_schema && (
+      {selectedAction && selectedAction.config_schema && !isUnavailableService && (
         <ConfigurationSection
           title="Action Configuration"
           schema={selectedAction.config_schema}

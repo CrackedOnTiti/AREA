@@ -3,8 +3,43 @@ import { useNavigate } from 'react-router-dom';
 import ConfigForm from './ConfigForm';
 
 
-export const ServiceDropdown = ({ value, onChange, services, disabled }) =>
+export const ServiceNotConnectedMessage = ({ serviceName }) =>
 {
+  const navigate = useNavigate();
+
+  return (
+    <div className="mt-3 bg-gray-900 border border-yellow-600 rounded-lg p-4">
+      <p className="text-yellow-500 text-sm mb-3">
+        You need to connect to {serviceName} to use this service.
+      </p>
+
+      <button
+        onClick={() => navigate('/services')}
+        className="px-3 py-1.5 bg-yellow-600 text-black text-sm font-semibold hover:bg-yellow-500 transition-colors rounded-lg"
+      >
+        Connect {serviceName}
+      </button>
+    </div>
+  );
+};
+
+
+export const ServiceDropdown = ({ value, onChange, services, disabled, unavailableServices = [], onUnavailableSelect }) =>
+{
+  const selectedIsUnavailable = unavailableServices.some(s => s.name === value);
+
+  const handleChange = (e) =>
+  {
+    const selectedName = e.target.value;
+    const isUnavailable = unavailableServices.some(s => s.name === selectedName);
+
+    if (isUnavailable && onUnavailableSelect)
+    {
+      onUnavailableSelect(selectedName);
+    }
+    onChange(e);
+  };
+
   return (
     <div className="mb-6">
       <label className="block text-white text-sm font-medium mb-2">
@@ -13,7 +48,7 @@ export const ServiceDropdown = ({ value, onChange, services, disabled }) =>
 
       <select
         value={value}
-        onChange={onChange}
+        onChange={handleChange}
         disabled={disabled}
         className="w-full px-4 py-3 bg-black border border-white rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-white"
       >
@@ -23,7 +58,19 @@ export const ServiceDropdown = ({ value, onChange, services, disabled }) =>
             {service.name}
           </option>
         ))}
+        {unavailableServices.length > 0 && (
+          <option disabled className="text-gray-500">── Not connected ──</option>
+        )}
+        {unavailableServices.map((service) => (
+          <option key={service.id} value={service.name} className="text-gray-500">
+            {service.name} (connect to use)
+          </option>
+        ))}
       </select>
+
+      {selectedIsUnavailable && (
+        <ServiceNotConnectedMessage serviceName={value} />
+      )}
     </div>
   );
 };

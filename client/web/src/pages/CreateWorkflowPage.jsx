@@ -35,7 +35,13 @@ const CreateWorkflowPage = () =>
 
   const requiresOAuth = (serviceName) =>
   {
-    return OAUTH_SERVICES.includes(serviceName.toLowerCase());
+    const name = serviceName.toLowerCase();
+    // Gmail and Drive are Google services
+    if (name === 'gmail' || name === 'drive')
+    {
+      return OAUTH_SERVICES.includes('google');
+    }
+    return OAUTH_SERVICES.includes(name);
   };
 
   const isServiceAvailable = (serviceName) =>
@@ -46,7 +52,7 @@ const CreateWorkflowPage = () =>
     }
 
     return connections.some(conn =>
-      conn.service_name.toLowerCase() === serviceName.toLowerCase()
+      conn.service_name.toLowerCase() === serviceName.toLowerCase() && conn.is_connected
     );
   };
 
@@ -61,6 +67,20 @@ const CreateWorkflowPage = () =>
         : true;
 
       return hasRequiredItems && isServiceAvailable(service.name);
+    });
+  };
+
+  const getUnavailableServices = (withActions = false, withReactions = false) =>
+  {
+    return services.filter(service =>
+    {
+      const hasRequiredItems = withActions
+        ? service.actions?.length > 0
+        : withReactions
+        ? service.reactions?.length > 0
+        : true;
+
+      return hasRequiredItems && !isServiceAvailable(service.name);
     });
   };
 
@@ -215,6 +235,7 @@ const CreateWorkflowPage = () =>
             {currentStep === 1 && (
               <Step1ActionSelection
                 availableServices={getAvailableServices(true, false)}
+                unavailableServices={getUnavailableServices(true, false)}
                 selectedService={selectedActionService}
                 onServiceChange={handleActionServiceChange}
                 selectedAction={selectedAction}
@@ -230,6 +251,7 @@ const CreateWorkflowPage = () =>
             {currentStep === 2 && (
               <Step2ReactionSelection
                 availableServices={getAvailableServices(false, true)}
+                unavailableServices={getUnavailableServices(false, true)}
                 selectedService={selectedReactionService}
                 onServiceChange={handleReactionServiceChange}
                 selectedReaction={selectedReaction}

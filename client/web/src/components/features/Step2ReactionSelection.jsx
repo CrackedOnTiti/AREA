@@ -9,6 +9,7 @@ import {
 
 const Step2ReactionSelection = ({
   availableServices,
+  unavailableServices = [],
   selectedService,
   onServiceChange,
   selectedReaction,
@@ -21,13 +22,15 @@ const Step2ReactionSelection = ({
   canProceed
 }) =>
 {
+  const isUnavailableService = unavailableServices.some(s => s.name === selectedService);
+
   return (
     <div>
       <h3 className="text-2xl font-bold text-white mb-6">
         Step 2: Select Reaction
       </h3>
 
-      {availableServices.length === 0 && (
+      {availableServices.length === 0 && unavailableServices.length === 0 && (
         <NoServicesMessage type="reactions" />
       )}
 
@@ -35,10 +38,11 @@ const Step2ReactionSelection = ({
         value={selectedService}
         onChange={onServiceChange}
         services={availableServices}
-        disabled={availableServices.length === 0}
+        unavailableServices={unavailableServices}
+        disabled={availableServices.length === 0 && unavailableServices.length === 0}
       />
 
-      {selectedService && (
+      {selectedService && !isUnavailableService && (
         <ItemDropdown
           label="Reaction"
           value={selectedReaction?.id || ''}
@@ -49,7 +53,7 @@ const Step2ReactionSelection = ({
         />
       )}
 
-      {selectedReaction && selectedReaction.config_schema && (
+      {selectedReaction && selectedReaction.config_schema && !isUnavailableService && (
         <ConfigurationSection
           title="Reaction Configuration"
           schema={selectedReaction.config_schema}

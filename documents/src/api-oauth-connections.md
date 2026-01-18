@@ -75,6 +75,51 @@ curl -X GET http://localhost:8080/api/connections \
 
 ---
 
+### `DELETE /api/connections/reset`
+
+**Description:**
+Disconnect all OAuth services for the current user. This removes all stored access tokens and service connections.
+
+**Authentication:** Required (Bearer token)
+
+**Request Headers:**
+```
+Authorization: Bearer <token>
+```
+
+**Request Body:**
+None required
+
+**Success Response (200 OK):**
+```json
+{
+  "message": "Successfully disconnected 4 service(s)",
+  "disconnected_count": 4
+}
+```
+
+**Response Fields:**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `message` | string | Success message with count of disconnected services |
+| `disconnected_count` | integer | Number of services that were disconnected |
+
+**Error Responses:**
+
+| Status | Error | Description |
+|--------|-------|-------------|
+| 401 | Authorization token is missing | No Authorization header provided |
+| 401 | Invalid or expired token | Token is invalid or has expired |
+
+**Example:**
+```bash
+curl -X DELETE http://localhost:8080/api/connections/reset \
+  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+```
+
+---
+
 ## Gmail OAuth Connections
 
 ### `GET/POST /api/connections/gmail`

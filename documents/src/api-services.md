@@ -10,6 +10,74 @@ http://localhost:8080
 
 ---
 
+## System Endpoints
+
+### `GET /`
+
+**Description:**
+Root endpoint for the application server.
+
+**Authentication:** Not required
+
+**Success Response (200 OK):**
+```
+Nibba
+```
+
+**Example:**
+```bash
+curl http://localhost:8080/
+```
+
+---
+
+### `GET /health`
+
+**Description:**
+Health check endpoint for monitoring and deployment. Returns the status of the server, database, and scheduler.
+
+**Authentication:** Not required
+
+**Success Response (200 OK):**
+```json
+{
+  "status": "healthy",
+  "database": "connected",
+  "scheduler": "enabled",
+  "services": {
+    "scheduler_interval": "1 minutes",
+    "active_count": 8
+  }
+}
+```
+
+**Response Fields:**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `status` | string | Overall health status ("healthy" or "unhealthy") |
+| `database` | string | Database connection status ("connected" or error message) |
+| `scheduler` | string | Scheduler status ("enabled", "disabled", or error message) |
+| `services.scheduler_interval` | string | How often the scheduler checks for workflow triggers |
+| `services.active_count` | integer | Number of active services in the database |
+
+**Error Response (503 Service Unavailable):**
+```json
+{
+  "status": "unhealthy",
+  "database": "error: connection refused",
+  "scheduler": "enabled",
+  "services": {}
+}
+```
+
+**Example:**
+```bash
+curl http://localhost:8080/health
+```
+
+---
+
 ## General Endpoints
 
 ### `GET /about.json`
@@ -715,6 +783,105 @@ curl -X PUT http://localhost:8080/api/areas/1 \
 
 ---
 
+### `PATCH /api/areas/<area_id>`
+
+**Description:**
+Partial update a workflow. Only updates the fields provided in the request body. Admins can update any workflow.
+
+**Authentication:** Required (Bearer token)
+
+**Request Headers:**
+```
+Authorization: Bearer <token>
+```
+
+**URL Parameters:**
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `area_id` | integer | Yes | ID of the workflow to update |
+
+**Request Body:**
+```json
+{
+  "name": "string",
+  "is_active": boolean,
+  "action_config": {
+    "key": "value"
+  },
+  "reaction_config": {
+    "key": "value"
+  }
+}
+```
+
+**Request Fields:**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `name` | string | No | New name for the workflow |
+| `is_active` | boolean | No | Whether the workflow is active |
+| `action_config` | object | No | New configuration for the action |
+| `reaction_config` | object | No | New configuration for the reaction |
+
+**Success Response (200 OK):**
+```json
+{
+  "message": "Workflow updated successfully",
+  "area": {
+    "id": 1,
+    "user_id": 1,
+    "name": "Updated Workflow Name",
+    "action": {
+      "id": 1,
+      "name": "time_matches",
+      "display_name": "Time Matches",
+      "service": "Timer"
+    },
+    "reaction": {
+      "id": 1,
+      "name": "send_email",
+      "display_name": "Send Email",
+      "service": "Email"
+    },
+    "action_config": {
+      "time": "14:00"
+    },
+    "reaction_config": {
+      "to": "user@example.com",
+      "subject": "Reminder",
+      "body": "This is a reminder!"
+    },
+    "is_active": true,
+    "last_triggered": null,
+    "created_at": "2025-12-15T10:30:00Z",
+    "updated_at": "2025-12-15T15:45:00Z"
+  }
+}
+```
+
+**Error Responses:**
+
+| Status | Error | Description |
+|--------|-------|-------------|
+| 401 | Authorization token is missing | No Authorization header provided |
+| 401 | Invalid or expired token | Token is invalid or has expired |
+| 403 | Unauthorized access to this workflow | User doesn't own this workflow (and is not admin) |
+| 404 | Workflow not found | Workflow with given ID doesn't exist |
+
+**Example:**
+```bash
+curl -X PATCH http://localhost:8080/api/areas/1 \
+  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Updated Workflow Name",
+    "is_active": false
+  }'
+```
+
+---
+
 ### `PATCH /api/areas/<area_id>/toggle`
 
 **Description:**
@@ -837,6 +1004,51 @@ None required
 **Example:**
 ```bash
 curl -X DELETE http://localhost:8080/api/areas/1 \
+  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+```
+
+---
+
+### `DELETE /api/areas/reset`
+
+**Description:**
+Delete all workflows for the current user. This also deletes all associated workflow logs.
+
+**Authentication:** Required (Bearer token)
+
+**Request Headers:**
+```
+Authorization: Bearer <token>
+```
+
+**Request Body:**
+None required
+
+**Success Response (200 OK):**
+```json
+{
+  "message": "Successfully deleted 5 workflow(s)",
+  "deleted_count": 5
+}
+```
+
+**Response Fields:**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `message` | string | Success message with count of deleted workflows |
+| `deleted_count` | integer | Number of workflows that were deleted |
+
+**Error Responses:**
+
+| Status | Error | Description |
+|--------|-------|-------------|
+| 401 | Authorization token is missing | No Authorization header provided |
+| 401 | Invalid or expired token | Token is invalid or has expired |
+
+**Example:**
+```bash
+curl -X DELETE http://localhost:8080/api/areas/reset \
   -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
 ```
 

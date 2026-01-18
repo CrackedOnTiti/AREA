@@ -28,6 +28,12 @@ jobs:
         with:
           mdbook-version: 'latest'
 
+      - name: Install mdbook-mermaid
+        run: |
+          cargo install mdbook-mermaid
+          cd documents
+          mdbook-mermaid install
+
       - name: Build with mdBook
         run: |
           cd documents

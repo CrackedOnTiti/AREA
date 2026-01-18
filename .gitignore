@@ -3,3 +3,12 @@ __pycache__/
 venv/
 .env
 *.txt
+*.apk
+
+# Flutter/Dart build artifacts
+client/apk/.dart_tool/
+client/apk/.flutter-plugins
+client/apk/.flutter-plugins-dependencies
+client/apk/build/
+client/apk/android/local.properties
+client/apk/android/app/src/main/java/

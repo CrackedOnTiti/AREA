@@ -274,6 +274,462 @@ def seed_gmail_service():
     return gmail
 
 
+def seed_drive_service():
+    """Seed Google Drive service with file actions and reactions"""
+    # Check if already exists
+    drive = Service.query.filter_by(name='drive').first()
+    if drive:
+        print("  Drive service already exists, skipping...")
+        return drive
+
+    # Create Drive service
+    drive = Service(
+        name='drive',
+        display_name='Google Drive',
+        description='Cloud storage and file management',
+        requires_oauth=True,
+        is_active=True
+    )
+    db.session.add(drive)
+    db.session.flush()
+
+    # Action: new_file_in_folder
+    action1 = Action(
+        service_id=drive.id,
+        name='new_file_in_folder',
+        display_name='New File in Folder',
+        description='Triggers when a new file is added to a specific folder',
+        config_schema={
+            'type': 'object',
+            'properties': {
+                'folder_name': {
+                    'type': 'string',
+                    'description': 'Name of the folder to monitor'
+                }
+            },
+            'required': ['folder_name']
+        }
+    )
+    db.session.add(action1)
+
+    # Action: new_file_uploaded
+    action2 = Action(
+        service_id=drive.id,
+        name='new_file_uploaded',
+        display_name='New File Uploaded',
+        description='Triggers when any new file is uploaded to Drive',
+        config_schema={
+            'type': 'object',
+            'properties': {}
+        }
+    )
+    db.session.add(action2)
+
+    # Reaction: create_file
+    reaction1 = Reaction(
+        service_id=drive.id,
+        name='create_file',
+        display_name='Create a file',
+        description='Creates a new text file in Google Drive',
+        config_schema={
+            'type': 'object',
+            'properties': {
+                'file_name': {
+                    'type': 'string',
+                    'description': 'Name of the file to create'
+                },
+                'content': {
+                    'type': 'string',
+                    'description': 'Content of the file'
+                },
+                'folder_name': {
+                    'type': 'string',
+                    'description': 'Optional folder name (leave empty for root)'
+                }
+            },
+            'required': ['file_name', 'content']
+        }
+    )
+    db.session.add(reaction1)
+
+    # Reaction: create_folder
+    reaction2 = Reaction(
+        service_id=drive.id,
+        name='create_folder',
+        display_name='Create a folder',
+        description='Creates a new folder in Google Drive',
+        config_schema={
+            'type': 'object',
+            'properties': {
+                'folder_name': {
+                    'type': 'string',
+                    'description': 'Name of the folder to create'
+                }
+            },
+            'required': ['folder_name']
+        }
+    )
+    db.session.add(reaction2)
+
+    # Reaction: share_file
+    reaction3 = Reaction(
+        service_id=drive.id,
+        name='share_file',
+        display_name='Share a file',
+        description='Shares a file with a user by email',
+        config_schema={
+            'type': 'object',
+            'properties': {
+                'file_name': {
+                    'type': 'string',
+                    'description': 'Name of the file to share'
+                },
+                'email': {
+                    'type': 'string',
+                    'format': 'email',
+                    'description': 'Email address to share with'
+                },
+                'role': {
+                    'type': 'string',
+                    'enum': ['reader', 'writer'],
+                    'description': 'Permission level'
+                }
+            },
+            'required': ['file_name', 'email', 'role']
+        }
+    )
+    db.session.add(reaction3)
+
+    print(f"{GREEN}      Created Drive service with 2 actions and 3 reactions{RESET}")
+    return drive
+
+
+def seed_facebook_service():
+    """Seed Facebook service with post monitoring actions"""
+    # Check if already exists
+    facebook = Service.query.filter_by(name='facebook').first()
+    if facebook:
+        print("  Facebook service already exists, skipping...")
+        return facebook
+
+    # Create Facebook service
+    facebook = Service(
+        name='facebook',
+        display_name='Facebook',
+        description='Personal timeline post monitoring',
+        requires_oauth=True,
+        is_active=True
+    )
+    db.session.add(facebook)
+    db.session.flush()
+
+    # Action: new_post_created
+    action1 = Action(
+        service_id=facebook.id,
+        name='new_post_created',
+        display_name='New Post Created',
+        description='Triggers when you create a new post on your Facebook timeline',
+        config_schema={
+            'type': 'object',
+            'properties': {}
+        }
+    )
+    db.session.add(action1)
+
+    # Action: post_contains_keyword
+    action2 = Action(
+        service_id=facebook.id,
+        name='post_contains_keyword',
+        display_name='Post Contains Keyword',
+        description='Triggers when your Facebook post contains a specific keyword',
+        config_schema={
+            'type': 'object',
+            'properties': {
+                'keyword': {
+                    'type': 'string',
+                    'description': 'Keyword to search for in post'
+                }
+            },
+            'required': ['keyword']
+        }
+    )
+    db.session.add(action2)
+
+    # Reaction: create_post
+    reaction1 = Reaction(
+        service_id=facebook.id,
+        name='create_post',
+        display_name='Create Post',
+        description='Creates a new post on your Facebook timeline',
+        config_schema={
+            'type': 'object',
+            'properties': {
+                'message': {
+                    'type': 'string',
+                    'description': 'Content of the post to create',
+                    'maxLength': 5000
+                }
+            },
+            'required': ['message']
+        }
+    )
+    db.session.add(reaction1)
+
+    print(f"{GREEN}      Created Facebook service with 2 actions and 1 reaction{RESET}")
+    return facebook
+
+
+def seed_github_service():
+    """Seed GitHub service with repository monitoring"""
+    # Check if already exists
+    github = Service.query.filter_by(name='github').first()
+    if github:
+        print("  GitHub service already exists, skipping...")
+        return github
+
+    # Create GitHub service
+    github = Service(
+        name='github',
+        display_name='GitHub',
+        description='Repository monitoring and automation',
+        requires_oauth=True,
+        is_active=True
+    )
+    db.session.add(github)
+    db.session.flush()
+
+    # Action: new_star_on_repo
+    action1 = Action(
+        service_id=github.id,
+        name='new_star_on_repo',
+        display_name='New Star on Repository',
+        description='Triggers when someone stars your repository',
+        config_schema={
+            'type': 'object',
+            'properties': {
+                'repo_name': {
+                    'type': 'string',
+                    'description': 'Repository name (e.g., username/repo)'
+                }
+            },
+            'required': ['repo_name']
+        }
+    )
+    db.session.add(action1)
+
+    # Action: new_issue_created
+    action2 = Action(
+        service_id=github.id,
+        name='new_issue_created',
+        display_name='New Issue Created',
+        description='Triggers when a new issue is created in your repository',
+        config_schema={
+            'type': 'object',
+            'properties': {
+                'repo_name': {
+                    'type': 'string',
+                    'description': 'Repository name (e.g., username/repo)'
+                }
+            },
+            'required': ['repo_name']
+        }
+    )
+    db.session.add(action2)
+
+    # Action: new_pr_opened
+    action3 = Action(
+        service_id=github.id,
+        name='new_pr_opened',
+        display_name='New Pull Request Opened',
+        description='Triggers when a new PR is opened in your repository',
+        config_schema={
+            'type': 'object',
+            'properties': {
+                'repo_name': {
+                    'type': 'string',
+                    'description': 'Repository name (e.g., username/repo)'
+                }
+            },
+            'required': ['repo_name']
+        }
+    )
+    db.session.add(action3)
+
+    # Reaction: create_issue
+    reaction1 = Reaction(
+        service_id=github.id,
+        name='create_issue',
+        display_name='Create Issue',
+        description='Creates a new issue in a repository',
+        config_schema={
+            'type': 'object',
+            'properties': {
+                'repo_name': {
+                    'type': 'string',
+                    'description': 'Repository name (e.g., username/repo)'
+                },
+                'title': {
+                    'type': 'string',
+                    'maxLength': 200,
+                    'description': 'Issue title'
+                },
+                'body': {
+                    'type': 'string',
+                    'maxLength': 5000,
+                    'description': 'Issue description'
+                }
+            },
+            'required': ['repo_name', 'title', 'body']
+        }
+    )
+    db.session.add(reaction1)
+
+    print(f"{GREEN}      Created GitHub service with 3 actions and 1 reaction{RESET}")
+    return github
+
+
+def seed_spotify_service():
+    """Seed Spotify service with music playback actions and reactions"""
+    # Check if already exists
+    spotify = Service.query.filter_by(name='spotify').first()
+    if spotify:
+        print("  Spotify service already exists, skipping...")
+        return spotify
+
+    # Create Spotify service
+    spotify = Service(
+        name='spotify',
+        display_name='Spotify',
+        description='Music playback control and playlist management',
+        requires_oauth=True,
+        is_active=True
+    )
+    db.session.add(spotify)
+    db.session.flush()
+
+    # Action: track_added_to_playlist
+    action1 = Action(
+        service_id=spotify.id,
+        name='track_added_to_playlist',
+        display_name='Track Added to Playlist',
+        description='Triggers when a new track is added to a specific playlist',
+        config_schema={
+            'type': 'object',
+            'properties': {
+                'playlist_id': {
+                    'type': 'string',
+                    'description': 'Spotify playlist ID'
+                }
+            },
+            'required': ['playlist_id']
+        }
+    )
+    db.session.add(action1)
+
+    # Action: track_saved
+    action2 = Action(
+        service_id=spotify.id,
+        name='track_saved',
+        display_name='Track Saved to Library',
+        description='Triggers when you save (like) a new track to your library',
+        config_schema={
+            'type': 'object',
+            'properties': {}
+        }
+    )
+    db.session.add(action2)
+
+    # Action: playback_started
+    action3 = Action(
+        service_id=spotify.id,
+        name='playback_started',
+        display_name='Playback Started',
+        description='Triggers when you start playing music on Spotify',
+        config_schema={
+            'type': 'object',
+            'properties': {}
+        }
+    )
+    db.session.add(action3)
+
+    # Reaction: add_to_playlist
+    reaction1 = Reaction(
+        service_id=spotify.id,
+        name='add_to_playlist',
+        display_name='Add Track to Playlist',
+        description='Add a track to a specific playlist',
+        config_schema={
+            'type': 'object',
+            'properties': {
+                'playlist_id': {
+                    'type': 'string',
+                    'description': 'Spotify playlist ID'
+                },
+                'track_uri': {
+                    'type': 'string',
+                    'description': 'Spotify track URI (e.g., spotify:track:xxxxx or just track ID)'
+                }
+            },
+            'required': ['playlist_id', 'track_uri']
+        }
+    )
+    db.session.add(reaction1)
+
+    # Reaction: create_playlist
+    reaction2 = Reaction(
+        service_id=spotify.id,
+        name='create_playlist',
+        display_name='Create Playlist',
+        description='Create a new playlist in your Spotify account',
+        config_schema={
+            'type': 'object',
+            'properties': {
+                'name': {
+                    'type': 'string',
+                    'maxLength': 100,
+                    'description': 'Playlist name'
+                },
+                'description': {
+                    'type': 'string',
+                    'maxLength': 300,
+                    'description': 'Playlist description (optional)'
+                },
+                'public': {
+                    'type': 'boolean',
+                    'description': 'Make playlist public (default: true)'
+                }
+            },
+            'required': ['name']
+        }
+    )
+    db.session.add(reaction2)
+
+    # Reaction: start_playback
+    reaction3 = Reaction(
+        service_id=spotify.id,
+        name='start_playback',
+        display_name='Start Playback',
+        description='Start playing a specific track or playlist',
+        config_schema={
+            'type': 'object',
+            'properties': {
+                'track_uri': {
+                    'type': 'string',
+                    'description': 'Spotify track URI (optional)'
+                },
+                'context_uri': {
+                    'type': 'string',
+                    'description': 'Spotify playlist/album URI (optional)'
+                }
+            }
+        }
+    )
+    db.session.add(reaction3)
+
+    print(f"{GREEN}      Created Spotify service with 3 actions and 3 reactions{RESET}")
+    return spotify
+
+
 def seed_all():
     """Seed all services"""
     print(f"\n{CYAN}=== Starting database seeding ==={RESET}\n")
@@ -283,6 +739,10 @@ def seed_all():
     seed_email_service()
     seed_system_service()
     seed_gmail_service()
+    seed_drive_service()
+    seed_facebook_service()
+    seed_github_service()
+    seed_spotify_service()
 
     db.session.commit()
 

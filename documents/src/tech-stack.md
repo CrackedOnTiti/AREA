@@ -30,23 +30,34 @@ This document outlines the technologies, frameworks, and tools used in the AREA 
 
 ## Frontend Technologies
 
-### Web Client
+### Framework & Language
 - **Framework**: React
-- **Language**: JavaScript/TypeScript
+- **Language**: JavaScript
 - **Port**: 8081
-- **Purpose**: Browser-based user interface
-- **Container**: Node.js 18 Alpine
-
-### Mobile Client
-- **Framework**: React Native
-- **Language**: JavaScript/TypeScript
-- **Platform**: Android (APK)
-- **Purpose**: Mobile application
+- **Purpose**: Web-based user interface
 - **Container**: Node.js 18 Alpine
 
 ---
 
-**Why React**, the main reason is because react allows us to have a centralised frontend that can work both for web and app thank to react native... I also have experience in component based architechture and the community is huge so potentially easyer to find someone that has done what we are looking for than going though the headache of finding out ourselfes
+**Why React for Web**: React's component-based architecture provides excellent reusability and maintainability for complex web interfaces. The virtual DOM ensures efficient updates, and the massive ecosystem offers pre-built solutions for common challenges. TypeScript adds type safety, catching errors at compile time rather than runtime. Vite provides significantly faster build times and hot module replacement compared to Create React App.
+
+**Why not Next.js**: While Next.js offers SSR/SSG benefits, our application is highly interactive and client-side heavy. React with Vite provides better development experience and faster builds for our SPA requirements without unnecessary SSR complexity.
+
+---
+
+## Mobile Frontend
+
+### Framework & Language
+- **Framework**: Flutter 3.0+
+- **Language**: Dart
+- **Platform**: Android APK
+- **Purpose**: Native mobile application
+
+---
+
+**Why Flutter for Mobile**: Flutter provides truly native performance with a single codebase for both iOS and Android. The hot reload feature dramatically speeds up development, and the widget-based architecture offers excellent customization. Dart's ahead-of-time compilation results in fast startup times and smooth animations.
+
+**Why not React Native**: School requirements.
 
 ---
 
@@ -65,7 +76,6 @@ This document outlines the technologies, frameworks, and tools used in the AREA 
 ### Database
 - **DBMS**: PostgreSQL 15
 - **Port**: 5432
-- **Database Name**: `area_db`
 - **Purpose**: Data persistence for users, services, actions, reactions, and AREAs
 
 ---
@@ -91,7 +101,7 @@ services:
   database    → PostgreSQL 15
   server      → Flask REST API
   client_web  → React web app
-  client_mobile → React Native builder
+  client_mobile → Flutter
 ```
 
 ### CI/CD
@@ -134,25 +144,6 @@ The Flask server exposes a RESTful API for client communication:
 - **Request/Response**: JSON
 - **Authentication**: JWT tokens (to be implemented)
 - **CORS**: Enabled for cross-origin requests
-
----
-
-## Future Technologies
-
-### Planned Additions
-- **OAuth2 Providers**:
-  - Google OAuth
-  - Facebook OAuth
-  - Twitter/X OAuth
-- **Task Queue**: For executing AREAs asynchronously
-- **Caching**: Redis for performance optimization
-- **Production Server**: Gunicorn/uWSGI for Flask
-
-### Security Considerations
-- JWT token-based authentication
-- Bcrypt for password hashing
-- Environment variable management for secrets
-- HTTPS/SSL (production)
 
 ---
 

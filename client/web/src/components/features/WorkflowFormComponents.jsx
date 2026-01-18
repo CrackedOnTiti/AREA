@@ -1,0 +1,146 @@
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import ConfigForm from './ConfigForm';
+
+
+export const ServiceNotConnectedMessage = ({ serviceName }) =>
+{
+  const navigate = useNavigate();
+
+  return (
+    <div className="mt-3 bg-gray-900 border border-yellow-600 rounded-lg p-4">
+      <p className="text-yellow-500 text-sm mb-3">
+        You need to connect to {serviceName} to use this service.
+      </p>
+
+      <button
+        onClick={() => navigate('/services')}
+        className="px-3 py-1.5 bg-yellow-600 text-black text-sm font-semibold hover:bg-yellow-500 transition-colors rounded-lg"
+      >
+        Connect {serviceName}
+      </button>
+    </div>
+  );
+};
+
+
+export const ServiceDropdown = ({ value, onChange, services, disabled, unavailableServices = [], onUnavailableSelect }) =>
+{
+  const selectedIsUnavailable = unavailableServices.some(s => s.name === value);
+
+  const handleChange = (e) =>
+  {
+    const selectedName = e.target.value;
+    const isUnavailable = unavailableServices.some(s => s.name === selectedName);
+
+    if (isUnavailable && onUnavailableSelect)
+    {
+      onUnavailableSelect(selectedName);
+    }
+    onChange(e);
+  };
+
+  return (
+    <div className="mb-6">
+      <label className="block text-white text-sm font-medium mb-2">
+        Service
+      </label>
+
+      <select
+        value={value}
+        onChange={handleChange}
+        disabled={disabled}
+        className="w-full px-4 py-3 bg-black border border-white rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-white"
+      >
+        <option value="">Select a service</option>
+        {services.map((service) => (
+          <option key={service.id} value={service.name}>
+            {service.name}
+          </option>
+        ))}
+        {unavailableServices.length > 0 && (
+          <option disabled className="text-gray-500">── Not connected ──</option>
+        )}
+        {unavailableServices.map((service) => (
+          <option key={service.id} value={service.name} className="text-gray-500">
+            {service.name} (connect to use)
+          </option>
+        ))}
+      </select>
+
+      {selectedIsUnavailable && (
+        <ServiceNotConnectedMessage serviceName={value} />
+      )}
+    </div>
+  );
+};
+
+
+export const NoServicesMessage = ({ type = 'actions' }) =>
+{
+  const navigate = useNavigate();
+
+  return (
+    <div className="bg-gray-900 border border-gray-700 rounded-lg p-6 mb-6">
+      <p className="text-gray-300 mb-4">
+        No services available with {type}. Please connect a service first.
+      </p>
+
+      <button
+        onClick={() => navigate('/services')}
+        className="px-4 py-2 bg-white text-black font-semibold hover:bg-gray-200 transition-colors rounded-lg"
+      >
+        Go to Services
+      </button>
+    </div>
+  );
+};
+
+
+export const ItemDropdown = ({ label, value, onChange, items, selectedItem, placeholder }) =>
+{
+  return (
+    <div className="mb-6">
+      <label className="block text-white text-sm font-medium mb-2">
+        {label}
+      </label>
+
+      <select
+        value={value}
+        onChange={onChange}
+        className="w-full px-4 py-3 bg-black border border-white rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-white"
+      >
+        <option value="">{placeholder}</option>
+        {items.map((item) => (
+          <option key={item.id} value={item.id}>
+            {item.name}
+          </option>
+        ))}
+      </select>
+
+      {selectedItem?.description && (
+        <p className="mt-2 text-gray-400 text-sm">
+          {selectedItem.description}
+        </p>
+      )}
+    </div>
+  );
+};
+
+
+export const ConfigurationSection = ({ title, schema, config, onChange }) =>
+{
+  return (
+    <div className="mb-6">
+      <h4 className="text-white text-lg font-semibold mb-4">
+        {title}
+      </h4>
+
+      <ConfigForm
+        schema={schema}
+        config={config}
+        onChange={onChange}
+      />
+    </div>
+  );
+};

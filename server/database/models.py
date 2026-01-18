@@ -13,6 +13,8 @@ class User(db.Model):
     password_hash = db.Column(db.String(255), nullable=True)  # Nullable for OAuth-only users
     oauth_provider = db.Column(db.String(50), nullable=True)  # 'google', 'facebook', or None for local auth
     oauth_provider_id = db.Column(db.String(255), nullable=True)  # Provider's user ID
+    reset_token = db.Column(db.String(255), nullable=True)  # Password reset token
+    reset_token_expires = db.Column(db.DateTime, nullable=True)  # Token expiration time
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
     updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc), nullable=False)
 

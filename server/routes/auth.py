@@ -1,6 +1,8 @@
 from flask import Blueprint, request, jsonify, url_for, redirect, current_app
 from database.models import db, User
-from utils.auth_utils import hash_password, verify_password, generate_token, require_auth, password_complexity, find_or_create_oauth_user
+from utils.auth_utils import hash_password, verify_password, generate_token, require_auth, password_complexity, find_or_create_oauth_user, generate_reset_token
+from utils.email_utils import send_password_reset_email
+from datetime import datetime, timedelta, timezone
 
 auth_bp = Blueprint('auth', __name__, url_prefix='/api/auth')
 
@@ -96,6 +98,65 @@ def get_current_user(current_user):
     }), 200
 
 
+@auth_bp.route('/me', methods=['PATCH'])
+@require_auth
+def update_current_user(current_user):
+    """Update current user's email"""
+    data = request.get_json()
+
+    if not data:
+        return jsonify({'error': 'No data provided'}), 400
+
+    # Update email if provided
+    if 'email' in data:
+        new_email = data['email'].strip()
+
+        if not new_email:
+            return jsonify({'error': 'Email cannot be empty'}), 400
+
+        # Check if email is already taken by another user
+        existing_user = User.query.filter_by(email=new_email).first()
+        if existing_user and existing_user.id != current_user.id:
+            return jsonify({'error': 'Email already in use'}), 409
+
+        current_user.email = new_email
+
+    db.session.commit()
+
+    return jsonify({
+        'message': 'Profile updated successfully',
+        'user': current_user.to_dict()
+    }), 200
+
+
+@auth_bp.route('/me', methods=['DELETE'])
+@require_auth
+def delete_current_user(current_user):
+    """Delete current user's account and all associated data"""
+    from database.models import UserArea, UserServiceConnection, WorkflowLog
+
+    # Prevent admin from deleting themselves
+    if current_user.id == 1 and current_user.username == 'admin':
+        return jsonify({'error': 'Admin account cannot be deleted'}), 403
+
+    # Delete all user's workflow logs
+    user_areas = UserArea.query.filter_by(user_id=current_user.id).all()
+    for area in user_areas:
+        WorkflowLog.query.filter_by(area_id=area.id).delete()
+
+    # Delete all user's workflows
+    UserArea.query.filter_by(user_id=current_user.id).delete()
+
+    # Delete all user's service connections
+    UserServiceConnection.query.filter_by(user_id=current_user.id).delete()
+
+    # Delete the user
+    db.session.delete(current_user)
+    db.session.commit()
+
+    return jsonify({'message': 'Account deleted successfully'}), 200
+
+
 @auth_bp.route('/google/login', methods=['GET'])
 def google_login():
     """Initiate Google OAuth2 login"""
@@ -143,12 +204,156 @@ def google_callback():
         # Generate JWT token
         jwt_token = generate_token(user.id)
 
-        # Return token and user info
-        return jsonify({
-            'message': 'Google login successful',
-            'token': jwt_token,
-            'user': user.to_dict()
-        }), 200
+        # Redirect to frontend with token
+        frontend_url = 'http://localhost:8081/oauth/callback'
+        return redirect(f'{frontend_url}?token={jwt_token}&success=true&service=google')
 
     except Exception as e:
-        return jsonify({'error': f'OAuth authentication failed: {str(e)}'}), 400
+        frontend_url = 'http://localhost:8081/oauth/callback'
+        return redirect(f'{frontend_url}?error={str(e)}')
+
+
+@auth_bp.route('/facebook/login', methods=['GET'])
+def facebook_login():
+    """Initiate Facebook OAuth2 login"""
+    # Get OAuth instance from app extensions
+    oauth = current_app.extensions['authlib.integrations.flask_client']
+
+    # Generate callback URL
+    redirect_uri = url_for('auth.facebook_callback', _external=True)
+
+    # Redirect user to Facebook for auth
+    return oauth.facebook.authorize_redirect(redirect_uri)
+
+
+@auth_bp.route('/facebook/callback', methods=['GET'])
+def facebook_callback():
+    """Facebook OAuth2 callback"""
+    try:
+        # Get OAuth instance from app extensions
+        oauth = current_app.extensions['authlib.integrations.flask_client']
+
+        # Get access token from Facebook
+        token = oauth.facebook.authorize_access_token()
+
+        # Get user info from Facebook Graph API
+        resp = oauth.facebook.get('https://graph.facebook.com/me?fields=id,name,email')
+        user_info = resp.json()
+
+        if not user_info:
+            return jsonify({'error': 'Failed to get user info from Facebook'}), 400
+
+        # Extract user data
+        facebook_user_id = user_info.get('id')
+        email = user_info.get('email')
+        name = user_info.get('name')
+
+        if not facebook_user_id:
+            return jsonify({'error': 'Missing required user information from Facebook'}), 400
+
+        # Email might not be available if user denied permission
+        if not email:
+            email = f"{facebook_user_id}@facebook.user"  # Fallback email
+
+        # Find or create user
+        user = find_or_create_oauth_user(
+            provider='facebook',
+            provider_user_id=facebook_user_id,
+            email=email,
+            name=name
+        )
+
+        # Generate JWT token
+        jwt_token = generate_token(user.id)
+
+        # Redirect to frontend with token
+        frontend_url = 'http://localhost:8081/oauth/callback'
+        return redirect(f'{frontend_url}?token={jwt_token}&success=true&service=facebook')
+
+    except Exception as e:
+        frontend_url = 'http://localhost:8081/oauth/callback'
+        return redirect(f'{frontend_url}?error={str(e)}')
+
+
+@auth_bp.route('/forgot-password', methods=['POST'])
+def forgot_password():
+    """Request password reset email"""
+    data = request.get_json()
+
+    if not data or not data.get('email'):
+        return jsonify({'error': 'Email is required'}), 400
+
+    email = data['email']
+
+    # Find user by email
+    user = User.query.filter_by(email=email).first()
+
+    # Always return success to prevent email enumeration
+    if not user:
+        return jsonify({'message': 'If an account with that email exists, a password reset link has been sent'}), 200
+
+    # Check if user is OAuth-only
+    if not user.password_hash:
+        return jsonify({'message': 'If an account with that email exists, a password reset link has been sent'}), 200
+
+    # Generate reset token
+    reset_token = generate_reset_token()
+    user.reset_token = reset_token
+    user.reset_token_expires = datetime.now(timezone.utc) + timedelta(hours=1)
+    db.session.commit()
+
+    # Send email
+    email_sent = send_password_reset_email(user.email, reset_token)
+
+    if not email_sent:
+        return jsonify({'error': 'Failed to send reset email. Please try again later.'}), 500
+
+    return jsonify({'message': 'If an account with that email exists, a password reset link has been sent'}), 200
+
+
+@auth_bp.route('/reset-password', methods=['POST'])
+def reset_password():
+    """Reset password with token"""
+    data = request.get_json()
+
+    if not data or not all(k in data for k in ('token', 'password')):
+        return jsonify({'error': 'Token and password are required'}), 400
+
+    token = data['token']
+    new_password = data['password']
+
+    # Validate password
+    if len(new_password) < 8:
+        return jsonify({'error': 'Password must be at least 8 characters'}), 400
+
+    if len(new_password) > 128:
+        return jsonify({'error': 'Password is too long'}), 400
+
+    if not password_complexity(new_password):
+        return jsonify({'error': 'Password requires a lowercase, uppercase and special character'}), 400
+
+    # Find user by token
+    user = User.query.filter_by(reset_token=token).first()
+
+    if not user:
+        return jsonify({'error': 'Invalid or expired reset token'}), 400
+
+    # Check if token is expired
+    if not user.reset_token_expires:
+        return jsonify({'error': 'Invalid or expired reset token'}), 400
+
+    # Ensure timezone-aware comparison
+    token_expiry = user.reset_token_expires
+    if token_expiry.tzinfo is None:
+        token_expiry = token_expiry.replace(tzinfo=timezone.utc)
+
+    if token_expiry < datetime.now(timezone.utc):
+        return jsonify({'error': 'Invalid or expired reset token'}), 400
+
+    # Reset password
+    user.password_hash = hash_password(new_password)
+    user.reset_token = None
+    user.reset_token_expires = None
+    db.session.commit()
+
+    return jsonify({'message': 'Password successfully reset. You can now log in with your new password.'}), 200

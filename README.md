@@ -1,5 +1,3 @@
-# AREA
-
 <p align="center">
   <img src="server/static/area-logo.png" alt="AREA Logo" width="200">
 </p>

@@ -1,5 +1,4 @@
-import os
-from flask import Blueprint, request, jsonify, send_file
+from flask import Blueprint, request, jsonify
 from utils.about import get_about_json
 from database.models import db, Service
 from config import Config
@@ -54,12 +53,3 @@ def health():
     status_code = 200 if health_status['status'] == 'healthy' else 503
 
     return jsonify(health_status), status_code
-
-
-@main_bp.route('/client.apk')
-def download_apk():
-    """Download the mobile APK"""
-    apk_path = '/mobile_build/client.apk'
-    if os.path.exists(apk_path):
-        return send_file(apk_path, as_attachment=True, download_name='area-client.apk')
-    return jsonify({'error': 'APK not found'}), 404

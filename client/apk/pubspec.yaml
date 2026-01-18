@@ -12,6 +12,15 @@ dependencies:
   shared_preferences: ^2.2.2
   webview_flutter: ^4.4.2
 
+dev_dependencies:
+  flutter_launcher_icons: ^0.13.1
+
+flutter_launcher_icons:
+  android: true
+  ios: false
+  image_path: "assets/area-icon.png"
+  min_sdk_android: 21
+
 flutter:
   uses-material-design: true
   assets:

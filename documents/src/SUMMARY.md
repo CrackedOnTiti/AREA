@@ -3,6 +3,7 @@
 [Introduction](./introduction.md)
 [Tech Stack](./tech-stack.md)
 [Configuration](./configuration.md)
+[Architecture & Diagrams](./architecture.md)
 
 # Web Client
 
